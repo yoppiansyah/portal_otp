@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Akses</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bg: '#0A0F1C',
+                        card: '#111827',
+                        cardhover: '#1a2234',
+                        accent: '#00D4AA',
+                        accent2: '#00B894',
+                        border: '#1E293B',
+                        muted: '#64748B',
+                        surface: '#0F1629',
+                        error: '#F43F5E',
+                        warning: '#F59E0B',
+                    },
+                    fontFamily: {
+                        heading: ['"Space Grotesk"', 'sans-serif'],
+                        body: ['"DM Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --accent: #00D4AA;
+            --accent-glow: rgba(0, 212, 170, 0.15);
+            --bg: #0A0F1C;
+            --card: #111827;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0;
+            overflow: hidden; pointer-events: none;
+        }
+        .bg-scene .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.35;
+            animation: orbFloat 18s ease-in-out infinite alternate;
+        }
+        .bg-scene .orb:nth-child(1) {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, #00D4AA 0%, transparent 70%);
+            top: -15%; left: -10%;
+            animation-duration: 20s;
+        }
+        .bg-scene .orb:nth-child(2) {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, #0E7490 0%, transparent 70%);
+            bottom: -10%; right: -8%;
+            animation-duration: 25s; animation-delay: -5s;
+        }
+        .bg-scene .orb:nth-child(3) {
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, #065F46 0%, transparent 70%);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            animation-duration: 22s; animation-delay: -10s;
+        }
+        @keyframes orbFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 40px) scale(0.95); }
+            100% { transform: translate(30px, 20px) scale(1.05); }
+        }
+
+        /* Grid pattern overlay */
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 1;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* ===== STEP INDICATOR ===== */
+        .step-line {
+            height: 2px;
+            background: #1E293B;
+            position: relative;
+            overflow: hidden;
+        }
+        .step-line .fill {
+            position: absolute; left: 0; top: 0; bottom: 0;
+            background: var(--accent);
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0 2px 2px 0;
+        }
+        .step-dot {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600; font-size: 14px;
+            border: 2px solid #1E293B;
+            background: var(--card);
+            color: #64748B;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative; z-index: 2;
+        }
+        .step-dot.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 20px rgba(0,212,170,0.25);
+        }
+        .step-dot.done {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: #0A0F1C;
+        }
+        .step-label {
+            font-size: 12px; color: #64748B;
+            transition: color 0.4s;
+            margin-top: 6px;
+        }
+        .step-label.active { color: var(--accent); }
+        .step-label.done { color: #94A3B8; }
+
+        /* ===== CARD ===== */
+        .auth-card {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(30, 41, 59, 0.6);
+            border-radius: 20px;
+            box-shadow:
+                0 0 0 1px rgba(0,212,170,0.04),
+                0 25px 60px -12px rgba(0,0,0,0.5),
+                0 0 80px -20px rgba(0,212,170,0.08);
+        }
+
+        /* ===== INPUT ===== */
+        .input-group {
+            position: relative;
+        }
+        .input-group .input-icon {
+            position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+            color: #64748B; font-size: 16px;
+            transition: color 0.3s;
+            pointer-events: none;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            background: rgba(15, 22, 41, 0.8);
+            border: 1.5px solid #1E293B;
+            border-radius: 12px;
+            color: #E2E8F0;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .input-group input::placeholder { color: #475569; }
+        .input-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0,212,170,0.12);
+        }
+        .input-group input:focus + .input-icon,
+        .input-group input:focus ~ .input-icon {
+            color: var(--accent);
+        }
+
+        /* ===== OTP INPUT ===== */
+        .otp-box {
+            width: 56px; height: 64px;
+            text-align: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 24px; font-weight: 700;
+            background: rgba(15, 22, 41, 0.8);
+            border: 2px solid #1E293B;
+            border-radius: 14px;
+            color: #E2E8F0;
+            outline: none;
+            transition: all 0.3s;
+            caret-color: var(--accent);
+        }
+        .otp-box:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0,212,170,0.15);
+            transform: translateY(-2px);
+        }
+        .otp-box.filled {
+            border-color: rgba(0,212,170,0.4);
+            background: rgba(0,212,170,0.06);
+        }
+
+        /* ===== BUTTON ===== */
+        .btn-primary {
+            width: 100%;
+            padding: 15px 24px;
+            background: linear-gradient(135deg, #00D4AA 0%, #00B894 100%);
+            color: #0A0F1C;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600; font-size: 15px;
+            border: none; border-radius: 12px;
+            cursor: pointer;
+            position: relative; overflow: hidden;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 30px rgba(0,212,170,0.3);
+        }
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5; cursor: not-allowed;
+        }
+        .btn-primary .spinner {
+            display: none;
+            width: 20px; height: 20px;
+            border: 2.5px solid rgba(10,15,28,0.2);
+            border-top-color: #0A0F1C;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        .btn-primary.loading .spinner { display: inline-block; }
+        .btn-primary.loading .btn-text { display: none; }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1.5px solid #1E293B;
+            color: #94A3B8;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-ghost:hover {
+            border-color: #334155;
+            color: #E2E8F0;
+            background: rgba(30,41,59,0.3);
+        }
+
+        /* ===== TOAST ===== */
+        .toast-container {
+            position: fixed; top: 24px; right: 24px;
+            z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            display: flex; align-items: center; gap: 10px;
+            backdrop-filter: blur(16px);
+            border: 1px solid;
+            min-width: 280px; max-width: 400px;
+            animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
+        .toast.success {
+            background: rgba(0,212,170,0.12);
+            border-color: rgba(0,212,170,0.25);
+            color: #00D4AA;
+        }
+        .toast.error {
+            background: rgba(244,63,94,0.12);
+            border-color: rgba(244,63,94,0.25);
+            color: #F43F5E;
+        }
+        .toast.info {
+            background: rgba(14,116,144,0.12);
+            border-color: rgba(14,116,144,0.25);
+            color: #22D3EE;
+        }
+        .toast.exit { animation: toastOut 0.3s ease-in forwards; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(60px) scale(0.95); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+        @keyframes toastOut {
+            to { opacity: 0; transform: translateX(60px) scale(0.95); }
+        }
+
+        /* ===== STEP PANELS ===== */
+        .step-panel {
+            display: none;
+            animation: panelIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .step-panel.active { display: block; }
+        @keyframes panelIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== DASHBOARD ===== */
+        .dash-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(30,41,59,0.5);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+        .dash-card:hover {
+            border-color: rgba(0,212,170,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+        }
+        .stat-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+
+        /* ===== MISC ===== */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        .pulse-ring {
+            position: absolute; inset: -8px;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            animation: pulse-ring 1.5s ease-out infinite;
+        }
+
+        .fade-in { animation: panelIn 0.6s ease-out; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+        /* Mobile */
+        @media (max-width: 480px) {
+            .otp-box { width: 46px; height: 56px; font-size: 20px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-bg text-white min-h-screen">
+
+    <!-- ===== ANIMATED BACKGROUND ===== -->
+    <div class="bg-scene" aria-hidden="true">
+        <div class="orb"></div>
+        <div class="orb"></div>
+        <div class="orb"></div>
+    </div>
+    <div class="bg-grid" aria-hidden="true"></div>
+
+    <!-- ===== TOAST CONTAINER ===== -->
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+    <!-- ===== MAIN CONTAINER ===== -->
+    <main class="relative z-10 min-h-screen flex items-center justify-center px-4 py-8">
+
+        <!-- ========== LOGIN SECTION ========== -->
+        <section id="loginSection" class="w-full max-w-md">
+
+            <!-- Logo / Brand -->
+            <div class="text-center mb-8 fade-in">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/20 mb-4">
+                    <i class="fa-solid fa-shield-halved text-accent text-2xl"></i>
+                </div>
+                <h1 class="font-heading text-3xl font-bold text-white tracking-tight">Portal Akses</h1>
+                <p class="text-muted text-sm mt-2">Masuk menggunakan email terdaftar</p>
+            </div>
+
+            <!-- Auth Card -->
+            <div class="auth-card p-8">
+
+                <!-- Step Indicator -->
+                <div class="flex items-center justify-center gap-0 mb-8">
+                    <div class="flex flex-col items-center">
+                        <div class="step-dot active" id="stepDot1">1</div>
+                        <span class="step-label active" id="stepLabel1">Identitas</span>
+                    </div>
+                    <div class="step-line w-20 mx-2">
+                        <div class="fill" id="stepFill1" style="width:0%"></div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="step-dot" id="stepDot2">2</div>
+                        <span class="step-label" id="stepLabel2">Verifikasi</span>
+                    </div>
+                    <div class="step-line w-20 mx-2">
+                        <div class="fill" id="stepFill2" style="width:0%"></div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="step-dot" id="stepDot3">
+                            <i class="fa-solid fa-check text-xs"></i>
+                        </div>
+                        <span class="step-label" id="stepLabel3">Selesai</span>
+                    </div>
+                </div>
+
+                <!-- ===== STEP 1: INPUT EMAIL & WA ===== -->
+                <div class="step-panel active" id="step1Panel">
+                    <h2 class="font-heading text-lg font-semibold text-white mb-1">Masukkan Data Anda</h2>
+                    <p class="text-muted text-sm mb-6">Email yang terdaftar akan diverifikasi melalui WhatsApp</p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2" for="emailInput">
+                                <i class="fa-solid fa-envelope text-xs mr-1 text-muted"></i> Email
+                            </label>
+                            <div class="input-group">
+                                <input type="email" id="emailInput" placeholder="nama@perusahaan.com" autocomplete="email" required>
+                                <i class="input-icon fa-regular fa-envelope"></i>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2" for="waInput">
+                                <i class="fa-brands fa-whatsapp text-xs mr-1 text-muted"></i> Nomor WhatsApp
+                            </label>
+                            <div class="input-group">
+                                <input type="tel" id="waInput" placeholder="6281234567890" autocomplete="tel" required>
+                                <i class="input-icon fa-brands fa-whatsapp"></i>
+                            </div>
+                            <p class="text-xs text-muted mt-1.5">Format: 628xx (tanpa + atau spasi)</p>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary mt-6" id="btnSubmit" type="button">
+                        <span class="btn-text">Kirim Kode OTP</span>
+                        <span class="spinner"></span>
+                    </button>
+                </div>
+
+                <!-- ===== STEP 2: OTP VERIFICATION ===== -->
+                <div class="step-panel" id="step2Panel">
+                    <div class="text-center mb-2">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 mb-3 relative">
+                            <i class="fa-brands fa-whatsapp text-accent text-xl"></i>
+                        </div>
+                    </div>
+                    <h2 class="font-heading text-lg font-semibold text-white text-center mb-1">Verifikasi Kode OTP</h2>
+                    <p class="text-muted text-sm text-center mb-1">Kode 6 digit telah dikirim ke</p>
+                    <p class="text-accent text-sm font-medium text-center mb-6" id="otpSentTo">+62 812-xxxx-xxxx</p>
+
+                    <div class="flex justify-center gap-3 mb-6" id="otpBoxes" role="group" aria-label="Kode OTP 6 digit">
+                        <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]" aria-label="Digit 1">
+                        <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]" aria-label="Digit 2">
+                        <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]" aria-label="Digit 3">
+                        <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]" aria-label="Digit 4">
+                        <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]" aria-label="Digit 5">
+                        <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]" aria-label="Digit 6">
+                    </div>
+
+                    <button class="btn-primary" id="btnVerify" type="button" disabled>
+                        <span class="btn-text">Verifikasi Kode</span>
+                        <span class="spinner"></span>
+                    </button>
+
+                    <div class="text-center mt-5">
+                        <p class="text-muted text-sm" id="resendText">
+                            Kirim ulang kode dalam <span class="text-accent font-medium" id="countdown">60</span> detik
+                        </p>
+                        <button class="text-accent text-sm font-medium hover:underline mt-2 hidden" id="btnResend" type="button">
+                            <i class="fa-solid fa-rotate-right text-xs mr-1"></i> Kirim Ulang Kode
+                        </button>
+                    </div>
+
+                    <button class="btn-ghost w-full mt-4" id="btnBack" type="button">
+                        <i class="fa-solid fa-arrow-left text-xs mr-2"></i> Kembali
+                    </button>
+                </div>
+
+                <!-- ===== STEP 3: SUCCESS (brief) ===== -->
+                <div class="step-panel" id="step3Panel">
+                    <div class="text-center py-6">
+                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-accent/15 mb-5 relative">
+                            <i class="fa-solid fa-check text-accent text-3xl"></i>
+                            <div class="pulse-ring"></div>
+                        </div>
+                        <h2 class="font-heading text-xl font-bold text-white mb-2">Verifikasi Berhasil</h2>
+                        <p class="text-muted text-sm">Mengalihkan ke dashboard...</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <p class="text-center text-muted text-xs mt-6">
+                <i class="fa-solid fa-lock text-[10px] mr-1"></i>
+                Dilindungi enkripsi end-to-end
+            </p>
+        </section>
+
+        <!-- ========== DASHBOARD SECTION ========== -->
+        <section id="dashboardSection" class="w-full max-w-5xl hidden">
+
+            <!-- Dashboard Header -->
+            <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 fade-in">
+                <div>
+                    <div class="flex items-center gap-3 mb-1">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/20 flex items-center justify-center">
+                            <i class="fa-solid fa-shield-halved text-accent"></i>
+                        </div>
+                        <h1 class="font-heading text-2xl font-bold text-white">Dashboard</h1>
+                    </div>
+                    <p class="text-muted text-sm ml-[52px]">Selamat datang kembali</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-medium text-white" id="dashEmail">-</p>
+                        <p class="text-xs text-muted" id="dashWa">-</p>
+                    </div>
+                    <button class="btn-ghost flex items-center gap-2" id="btnLogout" type="button">
+                        <i class="fa-solid fa-right-from-bracket text-xs"></i>
+                        <span>Keluar</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="dash-card">
+                    <div class="flex items-center gap-4">
+                        <div class="stat-icon bg-accent/10 text-accent">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-muted uppercase tracking-wider">Pengguna Aktif</p>
+                            <p class="font-heading text-2xl font-bold text-white mt-0.5">1,284</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-accent mt-3"><i class="fa-solid fa-arrow-up text-[10px] mr-1"></i>+12.5% dari bulan lalu</p>
+                </div>
+                <div class="dash-card">
+                    <div class="flex items-center gap-4">
+                        <div class="stat-icon bg-cyan-500/10 text-cyan-400">
+                            <i class="fa-solid fa-message"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-muted uppercase tracking-wider">Pesan Terkirim</p>
+                            <p class="font-heading text-2xl font-bold text-white mt-0.5">8,432</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-cyan-400 mt-3"><i class="fa-solid fa-arrow-up text-[10px] mr-1"></i>+8.3% dari bulan lalu</p>
+                </div>
+                <div class="dash-card">
+                    <div class="flex items-center gap-4">
+                        <div class="stat-icon bg-amber-500/10 text-amber-400">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-muted uppercase tracking-wider">OTP Terkirim</p>
+                            <p class="font-heading text-2xl font-bold text-white mt-0.5">3,217</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-amber-400 mt-3"><i class="fa-solid fa-arrow-up text-[10px] mr-1"></i>+22.1% dari bulan lalu</p>
+                </div>
+                <div class="dash-card">
+                    <div class="flex items-center gap-4">
+                        <div class="stat-icon bg-rose-500/10 text-rose-400">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-muted uppercase tracking-wider">Tingkat Sukses</p>
+                            <p class="font-heading text-2xl font-bold text-white mt-0.5">98.7%</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-rose-400 mt-3"><i class="fa-solid fa-arrow-up text-[10px] mr-1"></i>+1.2% dari bulan lalu</p>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <!-- Aktivitas Terbaru -->
+                <div class="dash-card lg:col-span-2">
+                    <div class="flex items-center justify-between mb-5">
+                        <h2 class="font-heading font-semibold text-white">Aktivitas Terbaru</h2>
+                        <span class="text-xs text-muted bg-surface px-3 py-1 rounded-full">Hari ini</span>
+                    </div>
+                    <div class="space-y-3" id="activityList">
+                        <!-- Diisi oleh JS -->
+                    </div>
+                </div>
+
+                <!-- Info Sesi -->
+                <div class="dash-card">
+                    <h2 class="font-heading font-semibold text-white mb-5">Info Sesi</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-xs text-muted uppercase tracking-wider mb-1">Email</p>
+                            <p class="text-sm text-slate-200 font-medium" id="sessionEmail">-</p>
+                        </div>
+                        <div class="border-t border-border pt-4">
+                            <p class="text-xs text-muted uppercase tracking-wider mb-1">WhatsApp</p>
+                            <p class="text-sm text-slate-200 font-medium" id="sessionWa">-</p>
+                        </div>
+                        <div class="border-t border-border pt-4">
+                            <p class="text-xs text-muted uppercase tracking-wider mb-1">Waktu Login</p>
+                            <p class="text-sm text-slate-200 font-medium" id="sessionTime">-</p>
+                        </div>
+                        <div class="border-t border-border pt-4">
+                            <p class="text-xs text-muted uppercase tracking-wider mb-1">Status</p>
+                            <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-accent/10 text-accent px-3 py-1.5 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+                                Aktif
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+    // ============================================================
+    //  KONFIGURASI — GANTI SESUAI KEBUTUHAN MU
+    // ============================================================
+    const CONFIG = {
+        // Daftar email yang terdaftar (bisa diganti jadi API call nanti)
+        registeredEmails: [
+            'admin@perusahaan.com',
+            'user@perusahaan.com',
+            'demo@perusahaan.com',
+        ],
+
+        // API endpoint untuk kirim OTP via WhatsApp
+        // Ganti ini dengan endpoint API WA-mu
+        waApiUrl: 'https://api.fonnte.com/send',
+        // Token API WA-mu
+        waApiToken: 'GANTI_DENGAN_TOKEN_WA_API_MU',
+
+        // Backend endpoint untuk verifikasi OTP (opsional)
+        // Jika null, OTP hanya dicek di frontend (demo mode)
+        verifyOtpUrl: null, // contoh: 'https://api.kamu.com/verify-otp'
+
+        // Durasi countdown resend OTP (detik)
+        otpExpiry: 60,
+    };
+
+    // ============================================================
+    //  STATE
+    // ============================================================
+    let currentStep = 1;
+    let generatedOtp = '';
+    let countdownTimer = null;
+    let currentUser = { email: '', wa: '' };
+
+    // ============================================================
+    //  DOM REFERENCES
+    // ============================================================
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    const loginSection = $('#loginSection');
+    const dashboardSection = $('#dashboardSection');
+    const emailInput = $('#emailInput');
+    const waInput = $('#waInput');
+    const btnSubmit = $('#btnSubmit');
+    const btnVerify = $('#btnVerify');
+    const btnBack = $('#btnBack');
+    const btnResend = $('#btnResend');
+    const btnLogout = $('#btnLogout');
+    const otpBoxes = $$('#otpBoxes .otp-box');
+    const countdownEl = $('#countdown');
+    const resendText = $('#resendText');
+    const otpSentTo = $('#otpSentTo');
+
+    // ============================================================
+    //  TOAST NOTIFICATION
+    // ============================================================
+    function showToast(message, type = 'info') {
+        const container = $('#toastContainer');
+        const icons = {
+            success: 'fa-solid fa-circle-check',
+            error: 'fa-solid fa-circle-xmark',
+            info: 'fa-solid fa-circle-info',
+        };
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="${icons[type] || icons.info}"></i><span>${message}</span>`;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('exit');
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    // ============================================================
+    //  STEP NAVIGATION
+    // ============================================================
+    function goToStep(step) {
+        currentStep = step;
+
+        // Sembunyikan semua panel
+        $$('.step-panel').forEach(p => p.classList.remove('active'));
+
+        // Tampilkan panel yang dituju
+        $(`#step${step}Panel`).classList.add('active');
+
+        // Update step dots & labels
+        for (let i = 1; i <= 3; i++) {
+            const dot = $(`#stepDot${i}`);
+            const label = $(`#stepLabel${i}`);
+            dot.classList.remove('active', 'done');
+            label.classList.remove('active', 'done');
+
+            if (i < step) {
+                dot.classList.add('done');
+                label.classList.add('done');
+            } else if (i === step) {
+                dot.classList.add('active');
+                label.classList.add('active');
+            }
+        }
+
+        // Update step fill lines
+        const fill1 = $('#stepFill1');
+        const fill2 = $('#stepFill2');
+        fill1.style.width = step >= 2 ? '100%' : '0%';
+        fill2.style.width = step >= 3 ? '100%' : '0%';
+    }
+
+    // ============================================================
+    //  FORMAT NOMOR WA
+    // ============================================================
+    function formatWaDisplay(num) {
+        const clean = num.replace(/\D/g, '');
+        if (clean.startsWith('62') && clean.length >= 10) {
+            return `+${clean.slice(0,2)} ${clean.slice(2,5)}-${clean.slice(5,9)}-${clean.slice(9)}`;
+        }
+        return num;
+    }
+
+    function sanitizeWa(num) {
+        return num.replace(/\D/g, '');
+    }
+
+    // ============================================================
+    //  GENERATE OTP
+    // ============================================================
+    function generateOtp() {
+        return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    // ============================================================
+    //  KIRIM OTP VIA WA API
+    // ============================================================
+    async function sendOtpToWa(waNumber, otp) {
+        // Format pesan OTP
+        const message = `*Portal Akses - Kode OTP*\n\nKode verifikasi Anda: *${otp}*\n\nKode ini berlaku selama ${CONFIG.otpExpiry} detik. Jangan bagikan kode ini kepada siapa pun.`;
+
+        try {
+            const response = await fetch(CONFIG.waApiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': CONFIG.waApiToken,
+                },
+                body: JSON.stringify({
+                    target: waNumber,
+                    message: message,
+                    // Format Fonnte — sesuaikan jika API WA-mu berbeda
+                    country_code: '62',
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            return { success: true, data };
+        } catch (err) {
+            console.error('Gagal mengirim OTP via WA:', err);
+            return { success: false, error: err.message };
+        }
+    }
+
+    // ============================================================
+    //  CEK EMAIL TERDAFTAR
+    // ============================================================
+    function isEmailRegistered(email) {
+        // Di production, ganti ini dengan panggilan API
+        // Contoh: const res = await fetch('/api/check-email', { method: 'POST', body: JSON.stringify({ email }) });
+        return CONFIG.registeredEmails.includes(email.toLowerCase().trim());
+    }
+
+    // ============================================================
+    //  STEP 1: SUBMIT EMAIL & WA
+    // ============================================================
+    btnSubmit.addEventListener('click', async () => {
+        const email = emailInput.value.trim().toLowerCase();
+        const wa = sanitizeWa(waInput.value);
+
+        // Validasi email
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showToast('Masukkan alamat email yang valid', 'error');
+            emailInput.focus();
+            return;
+        }
+
+        // Validasi nomor WA
+        if (!wa || wa.length < 10 || !wa.startsWith('62')) {
+            showToast('Masukkan nomor WhatsApp valid (format: 628xxx)', 'error');
+            waInput.focus();
+            return;
+        }
+
+        // Loading state
+        btnSubmit.classList.add('loading');
+        btnSubmit.disabled = true;
+
+        // Simulasi delay pengecekan (di production, ini adalah API call)
+        await new Promise(r => setTimeout(r, 800));
+
+        const registered = isEmailRegistered(email);
+
+        if (!registered) {
+            btnSubmit.classList.remove('loading');
+            btnSubmit.disabled = false;
+            showToast('Email tidak terdaftar dalam sistem', 'error');
+            return;
+        }
+
+        // Generate OTP
+        generatedOtp = generateOtp();
+        currentUser = { email, wa };
+
+        // Kirim OTP via WA API
+        const result = await sendOtpToWa(wa, generatedOtp);
+
+        btnSubmit.classList.remove('loading');
+        btnSubmit.disabled = false;
+
+        if (!result.success) {
+            // Demo mode: tetap lanjutkan tapi kasih peringatan
+            // Di production, mungkin ingin menghentikan di sini
+            console.warn('WA API gagal, masuk mode demo');
+            showToast('Mode demo: OTP ditampilkan di console browser', 'info');
+            console.log(`%c[DEMO OTP] Kode: ${generatedOtp}`, 'color: #00D4AA; font-size: 18px; font-weight: bold;');
+        } else {
+            showToast('Kode OTP berhasil dikirim ke WhatsApp', 'success');
+        }
+
+        // Pindah ke step 2
+        otpSentTo.textContent = formatWaDisplay(wa);
+        goToStep(2);
+        startCountdown();
+        otpBoxes[0].focus();
+    });
+
+    // ============================================================
+    //  OTP INPUT BEHAVIOR
+    // ============================================================
+    otpBoxes.forEach((box, index) => {
+        box.addEventListener('input', (e) => {
+            const val = e.target.value.replace(/\D/g, '');
+            e.target.value = val.slice(0, 1);
+
+            if (val && index < otpBoxes.length - 1) {
+                otpBoxes[index + 1].focus();
+            }
+
+            // Update filled state
+            box.classList.toggle('filled', !!val);
+
+            // Cek apakah semua terisi
+            checkOtpComplete();
+        });
+
+        box.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !box.value && index > 0) {
+                otpBoxes[index - 1].focus();
+                otpBoxes[index - 1].value = '';
+                otpBoxes[index - 1].classList.remove('filled');
+                checkOtpComplete();
+            }
+        });
+
+        // Support paste
+        box.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const paste = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+            paste.split('').forEach((char, i) => {
+                if (otpBoxes[i]) {
+                    otpBoxes[i].value = char;
+                    otpBoxes[i].classList.add('filled');
+                }
+            });
+            const focusIdx = Math.min(paste.length, otpBoxes.length - 1);
+            otpBoxes[focusIdx].focus();
+            checkOtpComplete();
+        });
+    });
+
+    function checkOtpComplete() {
+        const code = getOtpValue();
+        btnVerify.disabled = code.length !== 6;
+    }
+
+    function getOtpValue() {
+        return Array.from(otpBoxes).map(b => b.value).join('');
+    }
+
+    // ============================================================
+    //  COUNTDOWN RESEND
+    // ============================================================
+    function startCountdown() {
+        let seconds = CONFIG.otpExpiry;
+        countdownEl.textContent = seconds;
+        resendText.classList.remove('hidden');
+        btnResend.classList.add('hidden');
+
+        clearInterval(countdownTimer);
+        countdownTimer = setInterval(() => {
+            seconds--;
+            countdownEl.textContent = seconds;
+            if (seconds <= 0) {
+                clearInterval(countdownTimer);
+                resendText.classList.add('hidden');
+                btnResend.classList.remove('hidden');
+            }
+        }, 1000);
+    }
+
+    // ============================================================
+    //  RESEND OTP
+    // ============================================================
+    btnResend.addEventListener('click', async () => {
+        generatedOtp = generateOtp();
+        btnResend.disabled = true;
+        btnResend.textContent = 'Mengirim...';
+
+        const result = await sendOtpToWa(currentUser.wa, generatedOtp);
+
+        if (!result.success) {
+            console.log(`%c[DEMO OTP] Kode baru: ${generatedOtp}`, 'color: #00D4AA; font-size: 18px; font-weight: bold;');
+            showToast('Mode demo: OTP baru di console browser', 'info');
+        } else {
+            showToast('Kode OTP baru telah dikirim', 'success');
+        }
+
+        btnResend.disabled = false;
+        btnResend.innerHTML = '<i class="fa-solid fa-rotate-right text-xs mr-1"></i> Kirim Ulang Kode';
+
+        // Reset OTP boxes
+        otpBoxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
+        btnVerify.disabled = true;
+        otpBoxes[0].focus();
+        startCountdown();
+    });
+
+    // ============================================================
+    //  STEP 2: VERIFY OTP
+    // ============================================================
+    btnVerify.addEventListener('click', async () => {
+        const code = getOtpValue();
+
+        if (code.length !== 6) {
+            showToast('Masukkan 6 digit kode OTP', 'error');
+            return;
+        }
+
+        btnVerify.classList.add('loading');
+        btnVerify.disabled = true;
+
+        // Verifikasi OTP
+        let isVerified = false;
+
+        if (CONFIG.verifyOtpUrl) {
+            // Production: kirim ke backend
+            try {
+                const res = await fetch(CONFIG.verifyOtpUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: currentUser.email,
+                        otp: code,
+                    }),
+                });
+                const data = await res.json();
+                isVerified = data.valid === true;
+            } catch (err) {
+                console.error('Gagal verifikasi OTP di server:', err);
+            }
+        } else {
+            // Demo: cek langsung di frontend
+            await new Promise(r => setTimeout(r, 600));
+            isVerified = code === generatedOtp;
+        }
+
+        btnVerify.classList.remove('loading');
+
+        if (!isVerified) {
+            btnVerify.disabled = false;
+            showToast('Kode OTP salah, silakan coba lagi', 'error');
+            // Shake animation pada OTP boxes
+            const container = $('#otpBoxes');
+            container.style.animation = 'none';
+            container.offsetHeight; // reflow
+            container.style.animation = 'shake 0.4s ease';
+            return;
+        }
+
+        // OTP benar — lanjut ke step 3
+        clearInterval(countdownTimer);
+        goToStep(3);
+        showToast('Verifikasi berhasil!', 'success');
+
+        // Simpan session
+        sessionStorage.setItem('portalSession', JSON.stringify({
+            email: currentUser.email,
+            wa: currentUser.wa,
+            loginTime: new Date().toISOString(),
+        }));
+
+        // Redirect ke dashboard setelah 1.5 detik
+        setTimeout(showDashboard, 1500);
+    });
+
+    // Shake animation (injected)
+    const shakeStyle = document.createElement('style');
+    shakeStyle.textContent = `
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
+        }
+    `;
+    document.head.appendChild(shakeStyle);
+
+    // ============================================================
+    //  BACK BUTTON
+    // ============================================================
+    btnBack.addEventListener('click', () => {
+        clearInterval(countdownTimer);
+        otpBoxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
+        btnVerify.disabled = true;
+        goToStep(1);
+    });
+
+    // ============================================================
+    //  SHOW DASHBOARD
+    // ============================================================
+    function showDashboard() {
+        loginSection.classList.add('hidden');
+        dashboardSection.classList.remove('hidden');
+        dashboardSection.classList.add('fade-in');
+
+        const session = JSON.parse(sessionStorage.getItem('portalSession') || '{}');
+        const email = session.email || currentUser.email;
+        const wa = session.wa || currentUser.wa;
+        const loginTime = session.loginTime ? new Date(session.loginTime) : new Date();
+
+        // Isi data dashboard
+        $('#dashEmail').textContent = email;
+        $('#dashWa').textContent = formatWaDisplay(wa);
+        $('#sessionEmail').textContent = email;
+        $('#sessionWa').textContent = formatWaDisplay(wa);
+        $('#sessionTime').textContent = loginTime.toLocaleString('id-ID', {
+            day: 'numeric', month: 'long', year: 'numeric',
+            hour: '2-digit', minute: '2-digit',
+        });
+
+        // Isi aktivitas dummy
+        renderActivities();
+    }
+
+    function renderActivities() {
+        const activities = [
+            { icon: 'fa-right-to-bracket', color: 'text-accent', bg: 'bg-accent/10', text: 'Login berhasil via OTP WhatsApp', time: 'Baru saja' },
+            { icon: 'fa-shield-halved', color: 'text-cyan-400', bg: 'bg-cyan-400/10', text: 'Verifikasi OTP berhasil', time: '1 menit lalu' },
+            { icon: 'fa-message', color: 'text-green-400', bg: 'bg-green-400/10', text: 'Kode OTP dikirim ke WhatsApp', time: '2 menit lalu' },
+            { icon: 'fa-magnifying-glass', color: 'text-amber-400', bg: 'bg-amber-400/10', text: 'Email ditemukan dalam database', time: '2 menit lalu' },
+            { icon: 'fa-envelope', color: 'text-purple-400', bg: 'bg-purple-400/10', text: 'Formulir identitas dikirim', time: '3 menit lalu' },
+        ];
+
+        const list = $('#activityList');
+        list.innerHTML = activities.map(a => `
+            <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-surface/50 transition-colors">
+                <div class="w-9 h-9 rounded-lg ${a.bg} flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid ${a.icon} ${a.color} text-sm"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm text-slate-200 truncate">${a.text}</p>
+                </div>
+                <span class="text-xs text-muted flex-shrink-0">${a.time}</span>
+            </div>
+        `).join('');
+    }
+
+    // ============================================================
+    //  LOGOUT
+    // ============================================================
+    btnLogout.addEventListener('click', () => {
+        sessionStorage.removeItem('portalSession');
+        dashboardSection.classList.add('hidden');
+        loginSection.classList.remove('hidden');
+        loginSection.classList.add('fade-in');
+
+        // Reset semua
+        emailInput.value = '';
+        waInput.value = '';
+        otpBoxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
+        btnVerify.disabled = true;
+        clearInterval(countdownTimer);
+        currentUser = { email: '', wa: '' };
+        generatedOtp = '';
+        goToStep(1);
+
+        showToast('Anda telah keluar dari sistem', 'info');
+    });
+
+    // ============================================================
+    //  CEK SESSION SAAT LOAD
+    // ============================================================
+    (function checkExistingSession() {
+        const session = sessionStorage.getItem('portalSession');
+        if (session) {
+            try {
+                const data = JSON.parse(session);
+                // Session valid jika kurang dari 24 jam
+                const age = Date.now() - new Date(data.loginTime).getTime();
+                if (age < 24 * 60 * 60 * 1000) {
+                    currentUser = { email: data.email, wa: data.wa };
+                    showDashboard();
+                    return;
+                }
+            } catch (e) { /* ignore */ }
+        }
+        goToStep(1);
+    })();
+
+    // ============================================================
+    //  ENTER KEY SUPPORT
+    // ============================================================
+    emailInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') waInput.focus();
+    });
+    waInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') btnSubmit.click();
+    });
+    </script>
+</body>
+</html>
