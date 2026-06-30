@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Akses</title>
+    <title>Portal Akses OLT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -14,14 +14,12 @@
                     colors: {
                         bg: '#0A0F1C',
                         card: '#111827',
-                        cardhover: '#1a2234',
                         accent: '#00D4AA',
                         accent2: '#00B894',
                         border: '#1E293B',
                         muted: '#64748B',
                         surface: '#0F1629',
                         error: '#F43F5E',
-                        warning: '#F59E0B',
                     },
                     fontFamily: {
                         heading: ['"Space Grotesk"', 'sans-serif'],
@@ -32,415 +30,177 @@
         }
     </script>
     <style>
-        :root {
-            --accent: #00D4AA;
-            --accent-glow: rgba(0, 212, 170, 0.15);
-            --bg: #0A0F1C;
-            --card: #111827;
-        }
-
+        :root { --accent: #00D4AA; --bg: #0A0F1C; --card: #111827; }
         * { box-sizing: border-box; }
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); min-height: 100vh; overflow-x: hidden; }
 
-        /* ===== ANIMATED BACKGROUND ===== */
-        .bg-scene {
-            position: fixed; inset: 0; z-index: 0;
-            overflow: hidden; pointer-events: none;
-        }
-        .bg-scene .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            opacity: 0.35;
-            animation: orbFloat 18s ease-in-out infinite alternate;
-        }
-        .bg-scene .orb:nth-child(1) {
-            width: 500px; height: 500px;
-            background: radial-gradient(circle, #00D4AA 0%, transparent 70%);
-            top: -15%; left: -10%;
-            animation-duration: 20s;
-        }
-        .bg-scene .orb:nth-child(2) {
-            width: 400px; height: 400px;
-            background: radial-gradient(circle, #0E7490 0%, transparent 70%);
-            bottom: -10%; right: -8%;
-            animation-duration: 25s; animation-delay: -5s;
-        }
-        .bg-scene .orb:nth-child(3) {
-            width: 300px; height: 300px;
-            background: radial-gradient(circle, #065F46 0%, transparent 70%);
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            animation-duration: 22s; animation-delay: -10s;
-        }
+        .bg-scene { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .bg-scene .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; animation: orbFloat 20s ease-in-out infinite alternate; }
+        .bg-scene .orb:nth-child(1) { width: 500px; height: 500px; background: radial-gradient(circle, #00D4AA 0%, transparent 70%); top: -15%; left: -10%; }
+        .bg-scene .orb:nth-child(2) { width: 400px; height: 400px; background: radial-gradient(circle, #0E7490 0%, transparent 70%); bottom: -10%; right: -8%; animation-delay: -7s; }
+        .bg-scene .orb:nth-child(3) { width: 300px; height: 300px; background: radial-gradient(circle, #065F46 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); animation-delay: -12s; }
         @keyframes orbFloat {
-            0% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(40px, -30px) scale(1.1); }
-            66% { transform: translate(-20px, 40px) scale(0.95); }
-            100% { transform: translate(30px, 20px) scale(1.05); }
+            0% { transform: translate(0,0) scale(1); }
+            33% { transform: translate(40px,-30px) scale(1.1); }
+            66% { transform: translate(-20px,40px) scale(0.95); }
+            100% { transform: translate(30px,20px) scale(1.05); }
         }
+        .bg-grid { position: fixed; inset: 0; z-index: 1; pointer-events: none; background-image: linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px); background-size: 60px 60px; }
 
-        /* Grid pattern overlay */
-        .bg-grid {
-            position: fixed; inset: 0; z-index: 1;
-            pointer-events: none;
-            background-image:
-                linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
-            background-size: 60px 60px;
-        }
-
-        /* ===== STEP INDICATOR ===== */
-        .step-line {
-            height: 2px;
-            background: #1E293B;
-            position: relative;
-            overflow: hidden;
-        }
-        .step-line .fill {
-            position: absolute; left: 0; top: 0; bottom: 0;
-            background: var(--accent);
-            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 0 2px 2px 0;
-        }
-        .step-dot {
-            width: 36px; height: 36px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 600; font-size: 14px;
-            border: 2px solid #1E293B;
-            background: var(--card);
-            color: #64748B;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative; z-index: 2;
-        }
-        .step-dot.active {
-            border-color: var(--accent);
-            color: var(--accent);
-            box-shadow: 0 0 20px rgba(0,212,170,0.25);
-        }
-        .step-dot.done {
-            border-color: var(--accent);
-            background: var(--accent);
-            color: #0A0F1C;
-        }
-        .step-label {
-            font-size: 12px; color: #64748B;
-            transition: color 0.4s;
-            margin-top: 6px;
-        }
+        .step-line { height: 2px; background: #1E293B; position: relative; overflow: hidden; }
+        .step-line .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); transition: width 0.6s cubic-bezier(0.4,0,0.2,1); border-radius: 0 2px 2px 0; }
+        .step-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 14px; border: 2px solid #1E293B; background: var(--card); color: #64748B; transition: all 0.5s cubic-bezier(0.4,0,0.2,1); position: relative; z-index: 2; }
+        .step-dot.active { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 20px rgba(0,212,170,0.25); }
+        .step-dot.done { border-color: var(--accent); background: var(--accent); color: #0A0F1C; }
+        .step-label { font-size: 12px; color: #64748B; transition: color 0.4s; margin-top: 6px; }
         .step-label.active { color: var(--accent); }
         .step-label.done { color: #94A3B8; }
 
-        /* ===== CARD ===== */
-        .auth-card {
-            background: rgba(17, 24, 39, 0.85);
-            backdrop-filter: blur(24px);
-            border: 1px solid rgba(30, 41, 59, 0.6);
-            border-radius: 20px;
-            box-shadow:
-                0 0 0 1px rgba(0,212,170,0.04),
-                0 25px 60px -12px rgba(0,0,0,0.5),
-                0 0 80px -20px rgba(0,212,170,0.08);
-        }
+        .auth-card { background: rgba(17,24,39,0.85); backdrop-filter: blur(24px); border: 1px solid rgba(30,41,59,0.6); border-radius: 20px; box-shadow: 0 0 0 1px rgba(0,212,170,0.04), 0 25px 60px -12px rgba(0,0,0,0.5), 0 0 80px -20px rgba(0,212,170,0.08); }
 
-        /* ===== INPUT ===== */
-        .input-group {
-            position: relative;
-        }
-        .input-group .input-icon {
-            position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
-            color: #64748B; font-size: 16px;
-            transition: color 0.3s;
-            pointer-events: none;
-        }
-        .input-group input {
-            width: 100%;
-            padding: 14px 16px 14px 48px;
-            background: rgba(15, 22, 41, 0.8);
-            border: 1.5px solid #1E293B;
-            border-radius: 12px;
-            color: #E2E8F0;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 15px;
-            outline: none;
-            transition: all 0.3s;
-        }
+        .input-group { position: relative; }
+        .input-group .input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #64748B; font-size: 16px; transition: color 0.3s; pointer-events: none; }
+        .input-group input { width: 100%; padding: 14px 16px 14px 48px; background: rgba(15,22,41,0.8); border: 1.5px solid #1E293B; border-radius: 12px; color: #E2E8F0; font-family: 'DM Sans', sans-serif; font-size: 15px; outline: none; transition: all 0.3s; }
         .input-group input::placeholder { color: #475569; }
-        .input-group input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(0,212,170,0.12);
-        }
-        .input-group input:focus + .input-icon,
-        .input-group input:focus ~ .input-icon {
-            color: var(--accent);
-        }
+        .input-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,212,170,0.12); }
+        .input-group input:focus + .input-icon, .input-group input:focus ~ .input-icon { color: var(--accent); }
 
-        /* ===== OTP INPUT ===== */
-        .otp-box {
-            width: 56px; height: 64px;
-            text-align: center;
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 24px; font-weight: 700;
-            background: rgba(15, 22, 41, 0.8);
-            border: 2px solid #1E293B;
-            border-radius: 14px;
-            color: #E2E8F0;
-            outline: none;
-            transition: all 0.3s;
-            caret-color: var(--accent);
-        }
-        .otp-box:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(0,212,170,0.15);
-            transform: translateY(-2px);
-        }
-        .otp-box.filled {
-            border-color: rgba(0,212,170,0.4);
-            background: rgba(0,212,170,0.06);
-        }
+        .otp-box { width: 56px; height: 64px; text-align: center; font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; background: rgba(15,22,41,0.8); border: 2px solid #1E293B; border-radius: 14px; color: #E2E8F0; outline: none; transition: all 0.3s; caret-color: var(--accent); }
+        .otp-box:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,212,170,0.15); transform: translateY(-2px); }
+        .otp-box.filled { border-color: rgba(0,212,170,0.4); background: rgba(0,212,170,0.06); }
 
-        /* ===== BUTTON ===== */
-        .btn-primary {
-            width: 100%;
-            padding: 15px 24px;
-            background: linear-gradient(135deg, #00D4AA 0%, #00B894 100%);
-            color: #0A0F1C;
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 600; font-size: 15px;
-            border: none; border-radius: 12px;
-            cursor: pointer;
-            position: relative; overflow: hidden;
-            transition: all 0.3s;
-        }
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 30px rgba(0,212,170,0.3);
-        }
-        .btn-primary:active:not(:disabled) {
-            transform: translateY(0);
-        }
-        .btn-primary:disabled {
-            opacity: 0.5; cursor: not-allowed;
-        }
-        .btn-primary .spinner {
-            display: none;
-            width: 20px; height: 20px;
-            border: 2.5px solid rgba(10,15,28,0.2);
-            border-top-color: #0A0F1C;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
+        .btn-primary { width: 100%; padding: 15px 24px; background: linear-gradient(135deg, #00D4AA 0%, #00B894 100%); color: #0A0F1C; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15px; border: none; border-radius: 12px; cursor: pointer; position: relative; overflow: hidden; transition: all 0.3s; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(0,212,170,0.3); }
+        .btn-primary:active:not(:disabled) { transform: translateY(0); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary .spinner { display: none; width: 20px; height: 20px; border: 2.5px solid rgba(10,15,28,0.2); border-top-color: #0A0F1C; border-radius: 50%; animation: spin 0.7s linear infinite; }
         .btn-primary.loading .spinner { display: inline-block; }
         .btn-primary.loading .btn-text { display: none; }
 
-        .btn-ghost {
-            background: transparent;
-            border: 1.5px solid #1E293B;
-            color: #94A3B8;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        .btn-ghost:hover {
-            border-color: #334155;
-            color: #E2E8F0;
-            background: rgba(30,41,59,0.3);
-        }
+        .btn-ghost { background: transparent; border: 1.5px solid #1E293B; color: #94A3B8; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 14px; transition: all 0.3s; }
+        .btn-ghost:hover { border-color: #334155; color: #E2E8F0; background: rgba(30,41,59,0.3); }
 
-        /* ===== TOAST ===== */
-        .toast-container {
-            position: fixed; top: 24px; right: 24px;
-            z-index: 9999;
-            display: flex; flex-direction: column; gap: 10px;
-        }
-        .toast {
-            padding: 14px 20px;
-            border-radius: 12px;
-            font-size: 14px;
-            display: flex; align-items: center; gap: 10px;
-            backdrop-filter: blur(16px);
-            border: 1px solid;
-            min-width: 280px; max-width: 400px;
-            animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-        }
-        .toast.success {
-            background: rgba(0,212,170,0.12);
-            border-color: rgba(0,212,170,0.25);
-            color: #00D4AA;
-        }
-        .toast.error {
-            background: rgba(244,63,94,0.12);
-            border-color: rgba(244,63,94,0.25);
-            color: #F43F5E;
-        }
-        .toast.info {
-            background: rgba(14,116,144,0.12);
-            border-color: rgba(14,116,144,0.25);
-            color: #22D3EE;
-        }
+        .toast-container { position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 14px 20px; border-radius: 12px; font-size: 14px; display: flex; align-items: center; gap: 10px; backdrop-filter: blur(16px); border: 1px solid; min-width: 280px; max-width: 400px; animation: toastIn 0.4s cubic-bezier(0.16,1,0.3,1); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+        .toast.success { background: rgba(0,212,170,0.12); border-color: rgba(0,212,170,0.25); color: #00D4AA; }
+        .toast.error { background: rgba(244,63,94,0.12); border-color: rgba(244,63,94,0.25); color: #F43F5E; }
+        .toast.info { background: rgba(14,116,144,0.12); border-color: rgba(14,116,144,0.25); color: #22D3EE; }
         .toast.exit { animation: toastOut 0.3s ease-in forwards; }
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateX(60px) scale(0.95); }
-            to { opacity: 1; transform: translateX(0) scale(1); }
-        }
-        @keyframes toastOut {
-            to { opacity: 0; transform: translateX(60px) scale(0.95); }
-        }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(60px) scale(0.95); } to { opacity: 1; transform: translateX(0) scale(1); } }
+        @keyframes toastOut { to { opacity: 0; transform: translateX(60px) scale(0.95); } }
 
-        /* ===== STEP PANELS ===== */
-        .step-panel {
-            display: none;
-            animation: panelIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+        .step-panel { display: none; animation: panelIn 0.5s cubic-bezier(0.16,1,0.3,1); }
         .step-panel.active { display: block; }
-        @keyframes panelIn {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ===== DASHBOARD ===== */
-        .dash-card {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(30,41,59,0.5);
-            border-radius: 16px;
-            padding: 24px;
-            transition: all 0.3s;
-        }
-        .dash-card:hover {
-            border-color: rgba(0,212,170,0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
-        }
-        .stat-icon {
-            width: 48px; height: 48px;
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px;
-        }
-
-        /* ===== MISC ===== */
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        @keyframes pulse-ring {
-            0% { transform: scale(0.8); opacity: 1; }
-            100% { transform: scale(2); opacity: 0; }
-        }
-        .pulse-ring {
-            position: absolute; inset: -8px;
-            border: 2px solid var(--accent);
-            border-radius: 50%;
-            animation: pulse-ring 1.5s ease-out infinite;
-        }
-
+        @keyframes panelIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .fade-in { animation: panelIn 0.6s ease-out; }
 
-        /* Scrollbar */
+        /* ===== OLT CARDS ===== */
+        .olt-card { background: rgba(17,24,39,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(30,41,59,0.5); border-radius: 20px; overflow: hidden; transition: all 0.4s cubic-bezier(0.4,0,0.2,1); position: relative; }
+        .olt-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), transparent); opacity: 0; transition: opacity 0.4s; }
+        .olt-card:hover { border-color: rgba(0,212,170,0.25); transform: translateY(-4px); box-shadow: 0 20px 50px rgba(0,0,0,0.3), 0 0 40px -10px rgba(0,212,170,0.1); }
+        .olt-card:hover::before { opacity: 1; }
+
+        .olt-status-dot { width: 10px; height: 10px; border-radius: 50%; position: relative; }
+        .olt-status-dot::after { content: ''; position: absolute; inset: -3px; border-radius: 50%; border: 2px solid currentColor; opacity: 0.3; animation: pulseRing 2s ease-out infinite; }
+        .olt-status-dot.online { background: #00D4AA; color: #00D4AA; }
+        .olt-status-dot.offline { background: #F43F5E; color: #F43F5E; }
+        @keyframes pulseRing { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(2.2); opacity: 0; } }
+
+        .btn-olt-access { display: inline-flex; align-items: center; gap: 10px; padding: 12px 28px; background: linear-gradient(135deg, #00D4AA 0%, #00B894 100%); color: #0A0F1C; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 14px; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s; text-decoration: none; }
+        .btn-olt-access:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,212,170,0.35); }
+
+        .btn-olt-copy { display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; background: rgba(30,41,59,0.5); border: 1px solid #1E293B; color: #94A3B8; border-radius: 10px; cursor: pointer; font-size: 13px; transition: all 0.3s; }
+        .btn-olt-copy:hover { border-color: #475569; color: #E2E8F0; background: rgba(30,41,59,0.8); }
+
+        .info-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(15,22,41,0.6); border: 1px solid rgba(30,41,59,0.4); border-radius: 8px; font-size: 12px; color: #94A3B8; }
+
+        /* IFRAME MODAL */
+        .iframe-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; flex-direction: column; animation: fadeIn 0.3s ease; }
+        .iframe-overlay.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .iframe-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #111827; border-bottom: 1px solid #1E293B; }
+        .iframe-header .url-bar { flex: 1; margin: 0 16px; padding: 8px 16px; background: #0A0F1C; border: 1px solid #1E293B; border-radius: 8px; color: #94A3B8; font-size: 13px; font-family: 'DM Sans', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .iframe-close { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.2); color: #F43F5E; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 14px; }
+        .iframe-close:hover { background: rgba(244,63,94,0.2); }
+        .iframe-overlay iframe { flex: 1; width: 100%; border: none; background: #fff; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #334155; }
 
-        /* Mobile */
-        @media (max-width: 480px) {
-            .otp-box { width: 46px; height: 56px; font-size: 20px; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
+        @media (max-width: 480px) { .otp-box { width: 46px; height: 56px; font-size: 20px; } }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
     </style>
 </head>
 <body class="bg-bg text-white min-h-screen">
 
-    <!-- ===== ANIMATED BACKGROUND ===== -->
-    <div class="bg-scene" aria-hidden="true">
-        <div class="orb"></div>
-        <div class="orb"></div>
-        <div class="orb"></div>
-    </div>
+    <div class="bg-scene" aria-hidden="true"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
     <div class="bg-grid" aria-hidden="true"></div>
-
-    <!-- ===== TOAST CONTAINER ===== -->
     <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-    <!-- ===== MAIN CONTAINER ===== -->
+    <!-- IFRAME OVERLAY untuk akses OLT -->
+    <div class="iframe-overlay" id="iframeOverlay">
+        <div class="iframe-header">
+            <div class="flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+                <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+            </div>
+            <div class="url-bar" id="iframeUrl">-</div>
+            <button class="iframe-close" id="iframeClose" type="button" aria-label="Tutup">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <iframe id="iframeEl" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" title="Akses OLT"></iframe>
+    </div>
+
     <main class="relative z-10 min-h-screen flex items-center justify-center px-4 py-8">
 
-        <!-- ========== LOGIN SECTION ========== -->
+        <!-- ========== LOGIN ========== -->
         <section id="loginSection" class="w-full max-w-md">
-
-            <!-- Logo / Brand -->
             <div class="text-center mb-8 fade-in">
                 <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/20 mb-4">
-                    <i class="fa-solid fa-shield-halved text-accent text-2xl"></i>
+                    <i class="fa-solid fa-server text-accent text-2xl"></i>
                 </div>
-                <h1 class="font-heading text-3xl font-bold text-white tracking-tight">Portal Akses</h1>
-                <p class="text-muted text-sm mt-2">Masuk menggunakan email terdaftar</p>
+                <h1 class="font-heading text-3xl font-bold text-white tracking-tight">Portal Akses OLT</h1>
+                <p class="text-muted text-sm mt-2">Login untuk mengakses panel OLT Anda</p>
             </div>
 
-            <!-- Auth Card -->
             <div class="auth-card p-8">
-
-                <!-- Step Indicator -->
                 <div class="flex items-center justify-center gap-0 mb-8">
                     <div class="flex flex-col items-center">
                         <div class="step-dot active" id="stepDot1">1</div>
                         <span class="step-label active" id="stepLabel1">Identitas</span>
                     </div>
-                    <div class="step-line w-20 mx-2">
-                        <div class="fill" id="stepFill1" style="width:0%"></div>
-                    </div>
+                    <div class="step-line w-20 mx-2"><div class="fill" id="stepFill1" style="width:0%"></div></div>
                     <div class="flex flex-col items-center">
                         <div class="step-dot" id="stepDot2">2</div>
                         <span class="step-label" id="stepLabel2">Verifikasi</span>
                     </div>
-                    <div class="step-line w-20 mx-2">
-                        <div class="fill" id="stepFill2" style="width:0%"></div>
-                    </div>
+                    <div class="step-line w-20 mx-2"><div class="fill" id="stepFill2" style="width:0%"></div></div>
                     <div class="flex flex-col items-center">
-                        <div class="step-dot" id="stepDot3">
-                            <i class="fa-solid fa-check text-xs"></i>
-                        </div>
+                        <div class="step-dot" id="stepDot3"><i class="fa-solid fa-check text-xs"></i></div>
                         <span class="step-label" id="stepLabel3">Selesai</span>
                     </div>
                 </div>
 
-                <!-- ===== STEP 1: INPUT EMAIL & WA ===== -->
+                <!-- STEP 1 -->
                 <div class="step-panel active" id="step1Panel">
                     <h2 class="font-heading text-lg font-semibold text-white mb-1">Masukkan Data Anda</h2>
-                    <p class="text-muted text-sm mb-6">Email yang terdaftar akan diverifikasi melalui WhatsApp</p>
-
+                    <p class="text-muted text-sm mb-6">Email terdaftar akan menerima OTP via WhatsApp</p>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-slate-300 mb-2" for="emailInput">
-                                <i class="fa-solid fa-envelope text-xs mr-1 text-muted"></i> Email
-                            </label>
+                            <label class="block text-sm font-medium text-slate-300 mb-2" for="emailInput"><i class="fa-solid fa-envelope text-xs mr-1 text-muted"></i> Email</label>
                             <div class="input-group">
                                 <input type="email" id="emailInput" placeholder="nama@perusahaan.com" autocomplete="email" required>
                                 <i class="input-icon fa-regular fa-envelope"></i>
                             </div>
                         </div>
-
                         <div>
-                            <label class="block text-sm font-medium text-slate-300 mb-2" for="waInput">
-                                <i class="fa-brands fa-whatsapp text-xs mr-1 text-muted"></i> Nomor WhatsApp
-                            </label>
+                            <label class="block text-sm font-medium text-slate-300 mb-2" for="waInput"><i class="fa-brands fa-whatsapp text-xs mr-1 text-muted"></i> Nomor WhatsApp</label>
                             <div class="input-group">
                                 <input type="tel" id="waInput" placeholder="6281234567890" autocomplete="tel" required>
                                 <i class="input-icon fa-brands fa-whatsapp"></i>
@@ -448,25 +208,18 @@
                             <p class="text-xs text-muted mt-1.5">Format: 628xx (tanpa + atau spasi)</p>
                         </div>
                     </div>
-
-                    <button class="btn-primary mt-6" id="btnSubmit" type="button">
-                        <span class="btn-text">Kirim Kode OTP</span>
-                        <span class="spinner"></span>
-                    </button>
+                    <button class="btn-primary mt-6" id="btnSubmit" type="button"><span class="btn-text">Kirim Kode OTP</span><span class="spinner"></span></button>
                 </div>
 
-                <!-- ===== STEP 2: OTP VERIFICATION ===== -->
+                <!-- STEP 2 -->
                 <div class="step-panel" id="step2Panel">
                     <div class="text-center mb-2">
-                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 mb-3 relative">
-                            <i class="fa-brands fa-whatsapp text-accent text-xl"></i>
-                        </div>
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 mb-3"><i class="fa-brands fa-whatsapp text-accent text-xl"></i></div>
                     </div>
                     <h2 class="font-heading text-lg font-semibold text-white text-center mb-1">Verifikasi Kode OTP</h2>
-                    <p class="text-muted text-sm text-center mb-1">Kode 6 digit telah dikirim ke</p>
-                    <p class="text-accent text-sm font-medium text-center mb-6" id="otpSentTo">+62 812-xxxx-xxxx</p>
-
-                    <div class="flex justify-center gap-3 mb-6" id="otpBoxes" role="group" aria-label="Kode OTP 6 digit">
+                    <p class="text-muted text-sm text-center mb-1">Kode 6 digit dikirim ke</p>
+                    <p class="text-accent text-sm font-medium text-center mb-6" id="otpSentTo">-</p>
+                    <div class="flex justify-center gap-3 mb-6" id="otpBoxes" role="group" aria-label="Kode OTP">
                         <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]" aria-label="Digit 1">
                         <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]" aria-label="Digit 2">
                         <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]" aria-label="Digit 3">
@@ -474,191 +227,213 @@
                         <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]" aria-label="Digit 5">
                         <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]" aria-label="Digit 6">
                     </div>
-
-                    <button class="btn-primary" id="btnVerify" type="button" disabled>
-                        <span class="btn-text">Verifikasi Kode</span>
-                        <span class="spinner"></span>
-                    </button>
-
+                    <button class="btn-primary" id="btnVerify" type="button" disabled><span class="btn-text">Verifikasi Kode</span><span class="spinner"></span></button>
                     <div class="text-center mt-5">
-                        <p class="text-muted text-sm" id="resendText">
-                            Kirim ulang kode dalam <span class="text-accent font-medium" id="countdown">60</span> detik
-                        </p>
-                        <button class="text-accent text-sm font-medium hover:underline mt-2 hidden" id="btnResend" type="button">
-                            <i class="fa-solid fa-rotate-right text-xs mr-1"></i> Kirim Ulang Kode
-                        </button>
+                        <p class="text-muted text-sm" id="resendText">Kirim ulang dalam <span class="text-accent font-medium" id="countdown">60</span> detik</p>
+                        <button class="text-accent text-sm font-medium hover:underline mt-2 hidden" id="btnResend" type="button"><i class="fa-solid fa-rotate-right text-xs mr-1"></i> Kirim Ulang Kode</button>
                     </div>
-
-                    <button class="btn-ghost w-full mt-4" id="btnBack" type="button">
-                        <i class="fa-solid fa-arrow-left text-xs mr-2"></i> Kembali
-                    </button>
+                    <button class="btn-ghost w-full mt-4" id="btnBack" type="button"><i class="fa-solid fa-arrow-left text-xs mr-2"></i> Kembali</button>
                 </div>
 
-                <!-- ===== STEP 3: SUCCESS (brief) ===== -->
+                <!-- STEP 3 -->
                 <div class="step-panel" id="step3Panel">
                     <div class="text-center py-6">
                         <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-accent/15 mb-5 relative">
                             <i class="fa-solid fa-check text-accent text-3xl"></i>
-                            <div class="pulse-ring"></div>
+                            <div style="position:absolute;inset:-8px;border:2px solid var(--accent);border-radius:50%;animation:pulseRing 1.5s ease-out infinite"></div>
                         </div>
                         <h2 class="font-heading text-xl font-bold text-white mb-2">Verifikasi Berhasil</h2>
-                        <p class="text-muted text-sm">Mengalihkan ke dashboard...</p>
+                        <p class="text-muted text-sm">Mengalihkan ke dashboard OLT...</p>
                     </div>
                 </div>
-
             </div>
-
-            <!-- Footer -->
-            <p class="text-center text-muted text-xs mt-6">
-                <i class="fa-solid fa-lock text-[10px] mr-1"></i>
-                Dilindungi enkripsi end-to-end
-            </p>
+            <p class="text-center text-muted text-xs mt-6"><i class="fa-solid fa-lock text-[10px] mr-1"></i> Dilindungi enkripsi end-to-end</p>
         </section>
 
-        <!-- ========== DASHBOARD SECTION ========== -->
-        <section id="dashboardSection" class="w-full max-w-5xl hidden">
-
-            <!-- Dashboard Header -->
+        <!-- ========== DASHBOARD ========== -->
+        <section id="dashboardSection" class="w-full max-w-6xl hidden">
             <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 fade-in">
                 <div>
                     <div class="flex items-center gap-3 mb-1">
                         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/20 flex items-center justify-center">
-                            <i class="fa-solid fa-shield-halved text-accent"></i>
+                            <i class="fa-solid fa-server text-accent"></i>
                         </div>
-                        <h1 class="font-heading text-2xl font-bold text-white">Dashboard</h1>
+                        <h1 class="font-heading text-2xl font-bold text-white">Dashboard OLT</h1>
                     </div>
-                    <p class="text-muted text-sm ml-[52px]">Selamat datang kembali</p>
+                    <p class="text-muted text-sm ml-[52px]" id="dashGreeting">Selamat datang</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="text-right hidden sm:block">
                         <p class="text-sm font-medium text-white" id="dashEmail">-</p>
                         <p class="text-xs text-muted" id="dashWa">-</p>
                     </div>
-                    <button class="btn-ghost flex items-center gap-2" id="btnLogout" type="button">
-                        <i class="fa-solid fa-right-from-bracket text-xs"></i>
-                        <span>Keluar</span>
-                    </button>
+                    <button class="btn-ghost flex items-center gap-2" id="btnLogout" type="button"><i class="fa-solid fa-right-from-bracket text-xs"></i><span>Keluar</span></button>
                 </div>
             </header>
 
-            <!-- Stat Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <div class="dash-card">
-                    <div class="flex items-center gap-4">
-                        <div class="stat-icon bg-accent/10 text-accent">
-                            <i class="fa-solid fa-users"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-muted uppercase tracking-wider">Pengguna Aktif</p>
-                            <p class="font-heading text-2xl font-bold text-white mt-0.5">1,284</p>
-                        </div>
+            <!-- Info user card -->
+            <div class="dash-card p-5 mb-6 fade-in" style="background:rgba(17,24,39,0.7);backdrop-filter:blur(12px);border:1px solid rgba(30,41,59,0.5);border-radius:16px;">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-user text-accent text-lg"></i>
                     </div>
-                    <p class="text-xs text-accent mt-3"><i class="fa-solid fa-arrow-up text-[10px] mr-1"></i>+12.5% dari bulan lalu</p>
-                </div>
-                <div class="dash-card">
-                    <div class="flex items-center gap-4">
-                        <div class="stat-icon bg-cyan-500/10 text-cyan-400">
-                            <i class="fa-solid fa-message"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-muted uppercase tracking-wider">Pesan Terkirim</p>
-                            <p class="font-heading text-2xl font-bold text-white mt-0.5">8,432</p>
-                        </div>
+                    <div class="flex-1">
+                        <h2 class="font-heading font-semibold text-white text-lg" id="dashName">-</h2>
+                        <p class="text-sm text-muted" id="dashRole">-</p>
                     </div>
-                    <p class="text-xs text-cyan-400 mt-3"><i class="fa-solid fa-arrow-up text-[10px] mr-1"></i>+8.3% dari bulan lalu</p>
-                </div>
-                <div class="dash-card">
-                    <div class="flex items-center gap-4">
-                        <div class="stat-icon bg-amber-500/10 text-amber-400">
-                            <i class="fa-solid fa-bolt"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-muted uppercase tracking-wider">OTP Terkirim</p>
-                            <p class="font-heading text-2xl font-bold text-white mt-0.5">3,217</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-amber-400 mt-3"><i class="fa-solid fa-arrow-up text-[10px] mr-1"></i>+22.1% dari bulan lalu</p>
-                </div>
-                <div class="dash-card">
-                    <div class="flex items-center gap-4">
-                        <div class="stat-icon bg-rose-500/10 text-rose-400">
-                            <i class="fa-solid fa-chart-line"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-muted uppercase tracking-wider">Tingkat Sukses</p>
-                            <p class="font-heading text-2xl font-bold text-white mt-0.5">98.7%</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-rose-400 mt-3"><i class="fa-solid fa-arrow-up text-[10px] mr-1"></i>+1.2% dari bulan lalu</p>
+                    <div class="flex flex-wrap gap-2" id="dashChips"></div>
                 </div>
             </div>
 
-            <!-- Dashboard Content -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <!-- Aktivitas Terbaru -->
-                <div class="dash-card lg:col-span-2">
-                    <div class="flex items-center justify-between mb-5">
-                        <h2 class="font-heading font-semibold text-white">Aktivitas Terbaru</h2>
-                        <span class="text-xs text-muted bg-surface px-3 py-1 rounded-full">Hari ini</span>
-                    </div>
-                    <div class="space-y-3" id="activityList">
-                        <!-- Diisi oleh JS -->
-                    </div>
-                </div>
+            <!-- OLT Cards Grid -->
+            <h3 class="font-heading font-semibold text-white text-lg mb-4"><i class="fa-solid fa-network-wired text-accent mr-2 text-base"></i>OLT Anda</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6" id="oltGrid"></div>
 
-                <!-- Info Sesi -->
-                <div class="dash-card">
-                    <h2 class="font-heading font-semibold text-white mb-5">Info Sesi</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <p class="text-xs text-muted uppercase tracking-wider mb-1">Email</p>
-                            <p class="text-sm text-slate-200 font-medium" id="sessionEmail">-</p>
-                        </div>
-                        <div class="border-t border-border pt-4">
-                            <p class="text-xs text-muted uppercase tracking-wider mb-1">WhatsApp</p>
-                            <p class="text-sm text-slate-200 font-medium" id="sessionWa">-</p>
-                        </div>
-                        <div class="border-t border-border pt-4">
-                            <p class="text-xs text-muted uppercase tracking-wider mb-1">Waktu Login</p>
-                            <p class="text-sm text-slate-200 font-medium" id="sessionTime">-</p>
-                        </div>
-                        <div class="border-t border-border pt-4">
-                            <p class="text-xs text-muted uppercase tracking-wider mb-1">Status</p>
-                            <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-accent/10 text-accent px-3 py-1.5 rounded-full">
-                                <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
-                                Aktif
-                            </span>
-                        </div>
-                    </div>
-                </div>
+            <!-- Catatan -->
+            <div class="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 text-amber-300/80 text-sm flex items-start gap-3" id="dashNote" style="display:none;">
+                <i class="fa-solid fa-triangle-exclamation mt-0.5 flex-shrink-0"></i>
+                <p id="dashNoteText"></p>
             </div>
-
         </section>
     </main>
 
     <script>
     // ============================================================
-    //  KONFIGURASI — GANTI SESUAI KEBUTUHAN MU
+    //  DATABASE USER & OLT — EDIT SESUAI KEBUTUHAN
+    //  Setiap email punya nama, role, daftar OLT, dan catatan
+    // ============================================================
+    const USER_DB = {
+        'yopiansah96@gmail.com': {
+            name: 'yopiansyah',
+            role: 'Network Administrator',
+            wa: '6282289467410',
+            note: 'Anda memiliki akses penuh ke semua OLT. Jangan bagikan kredensial ini.',
+            olts: [
+                {
+                    name: 'OLT Kantor Pusat Jakarta',
+                    ip: '192.168.1.1',
+                    port: 80,
+                    protocol: 'http',
+                    type: 'ZTE C600',
+                    location: 'Jakarta Pusat, Gedung Utama Lantai 3',
+                    status: 'online',
+                    credentials: { username: 'admin', password: 'admin123' },
+                },
+                {
+                    name: 'OLT Cabang Bekasi',
+                    ip: '192.168.2.1',
+                    port: 443,
+                    protocol: 'https',
+                    type: 'Huawei MA5608T',
+                    location: 'Bekasi, Data Center Cabang',
+                    status: 'online',
+                    credentials: { username: 'root', password: 'root123' },
+                },
+                {
+                    name: 'OLT Cabang Tangerang',
+                    ip: '10.10.5.1',
+                    port: 8080,
+                    protocol: 'http',
+                    type: 'FiberHome AN6000',
+                    location: 'Tangerang Selatan, Ruang Server',
+                    status: 'offline',
+                    credentials: { username: 'admin', password: 'fh@2024' },
+                },
+            ]
+        },
+        'teknisi.bekasi@perusahaan.com': {
+            name: 'Budi Santoso',
+            role: 'Teknisi Area Bekasi',
+            wa: '6289876543210',
+            note: '',
+            olts: [
+                {
+                    name: 'OLT Cabang Bekasi',
+                    ip: '192.168.2.1',
+                    port: 443,
+                    protocol: 'https',
+                    type: 'Huawei MA5608T',
+                    location: 'Bekasi, Data Center Cabang',
+                    status: 'online',
+                    credentials: { username: 'root', password: 'root123' },
+                }
+            ]
+        },
+        'teknisi.tangerang@perusahaan.com': {
+            name: 'Dian Pratama',
+            role: 'Teknisi Area Tangerang',
+            wa: '6281357924680',
+            note: 'OLT Tangerang saat ini dalam pemeliharaan. Hubungi admin jika ada kendala.',
+            olts: [
+                {
+                    name: 'OLT Cabang Tangerang',
+                    ip: '10.10.5.1',
+                    port: 8080,
+                    protocol: 'http',
+                    type: 'FiberHome AN6000',
+                    location: 'Tangerang Selatan, Ruang Server',
+                    status: 'offline',
+                    credentials: { username: 'admin', password: 'fh@2024' },
+                }
+            ]
+        },
+        'noc@perusahaan.com': {
+            name: 'Sari Dewi',
+            role: 'NOC Operator',
+            wa: '6281122334455',
+            note: 'Monitoring 24/7. Laporkan insiden ke tim escalation.',
+            olts: [
+                {
+                    name: 'OLT Kantor Pusat Jakarta',
+                    ip: '192.168.1.1',
+                    port: 80,
+                    protocol: 'http',
+                    type: 'ZTE C600',
+                    location: 'Jakarta Pusat, Gedung Utama Lantai 3',
+                    status: 'online',
+                    credentials: { username: 'admin', password: 'admin123' },
+                },
+                {
+                    name: 'OLT Cabang Bekasi',
+                    ip: '192.168.2.1',
+                    port: 443,
+                    protocol: 'https',
+                    type: 'Huawei MA5608T',
+                    location: 'Bekasi, Data Center Cabang',
+                    status: 'online',
+                    credentials: { username: 'root', password: 'root123' },
+                },
+                {
+                    name: 'OLT Cabang Depok',
+                    ip: '172.16.0.1',
+                    port: 80,
+                    protocol: 'http',
+                    type: 'ZTE C320',
+                    location: 'Depok, STO Margonda',
+                    status: 'online',
+                    credentials: { username: 'admin', password: 'zte@2024' },
+                },
+                {
+                    name: 'OLT Cabang Bogor',
+                    ip: '172.16.1.1',
+                    port: 443,
+                    protocol: 'https',
+                    type: 'Huawei MA5800',
+                    location: 'Bogor, Gedung Telkom',
+                    status: 'online',
+                    credentials: { username: 'admin', password: 'hw@2024' },
+                },
+            ]
+        },
+    };
+
+    // ============================================================
+    //  KONFIGURASI API
     // ============================================================
     const CONFIG = {
-        // Daftar email yang terdaftar (bisa diganti jadi API call nanti)
-        registeredEmails: [
-            'yopiansah96@gmail.com',
-            'user@perusahaan.com',
-            'demo@perusahaan.com',
-        ],
-
-        // API endpoint untuk kirim OTP via WhatsApp
-        // Ganti ini dengan endpoint API WA-mu
         waApiUrl: 'https://api.fonnte.com/send',
-        // Token API WA-mu
         waApiToken: 'QqW2pMFwMMjwdQRLCG5Q',
-
-        // Backend endpoint untuk verifikasi OTP (opsional)
-        // Jika null, OTP hanya dicek di frontend (demo mode)
-        verifyOtpUrl: null, // contoh: 'https://api.kamu.com/verify-otp'
-
-        // Durasi countdown resend OTP (detik)
+        verifyOtpUrl: null,
         otpExpiry: 60,
     };
 
@@ -670,504 +445,387 @@
     let countdownTimer = null;
     let currentUser = { email: '', wa: '' };
 
-    // ============================================================
-    //  DOM REFERENCES
-    // ============================================================
-    const $ = (sel) => document.querySelector(sel);
-    const $$ = (sel) => document.querySelectorAll(sel);
-
-    const loginSection = $('#loginSection');
-    const dashboardSection = $('#dashboardSection');
-    const emailInput = $('#emailInput');
-    const waInput = $('#waInput');
-    const btnSubmit = $('#btnSubmit');
-    const btnVerify = $('#btnVerify');
-    const btnBack = $('#btnBack');
-    const btnResend = $('#btnResend');
-    const btnLogout = $('#btnLogout');
-    const otpBoxes = $$('#otpBoxes .otp-box');
-    const countdownEl = $('#countdown');
-    const resendText = $('#resendText');
-    const otpSentTo = $('#otpSentTo');
+    const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
 
     // ============================================================
-    //  TOAST NOTIFICATION
+    //  TOAST
     // ============================================================
-    function showToast(message, type = 'info') {
-        const container = $('#toastContainer');
-        const icons = {
-            success: 'fa-solid fa-circle-check',
-            error: 'fa-solid fa-circle-xmark',
-            info: 'fa-solid fa-circle-info',
-        };
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `<i class="${icons[type] || icons.info}"></i><span>${message}</span>`;
-        container.appendChild(toast);
-
-        setTimeout(() => {
-            toast.classList.add('exit');
-            setTimeout(() => toast.remove(), 300);
-        }, 4000);
+    function showToast(msg, type = 'info') {
+        const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.innerHTML = `<i class="fa-solid ${icons[type]||icons.info}"></i><span>${msg}</span>`;
+        $('#toastContainer').appendChild(t);
+        setTimeout(() => { t.classList.add('exit'); setTimeout(() => t.remove(), 300); }, 4000);
     }
 
     // ============================================================
-    //  STEP NAVIGATION
+    //  STEP NAV
     // ============================================================
     function goToStep(step) {
         currentStep = step;
-
-        // Sembunyikan semua panel
         $$('.step-panel').forEach(p => p.classList.remove('active'));
-
-        // Tampilkan panel yang dituju
         $(`#step${step}Panel`).classList.add('active');
-
-        // Update step dots & labels
         for (let i = 1; i <= 3; i++) {
-            const dot = $(`#stepDot${i}`);
-            const label = $(`#stepLabel${i}`);
-            dot.classList.remove('active', 'done');
-            label.classList.remove('active', 'done');
-
-            if (i < step) {
-                dot.classList.add('done');
-                label.classList.add('done');
-            } else if (i === step) {
-                dot.classList.add('active');
-                label.classList.add('active');
-            }
+            const d = $(`#stepDot${i}`), l = $(`#stepLabel${i}`);
+            d.classList.remove('active','done'); l.classList.remove('active','done');
+            if (i < step) { d.classList.add('done'); l.classList.add('done'); }
+            else if (i === step) { d.classList.add('active'); l.classList.add('active'); }
         }
-
-        // Update step fill lines
-        const fill1 = $('#stepFill1');
-        const fill2 = $('#stepFill2');
-        fill1.style.width = step >= 2 ? '100%' : '0%';
-        fill2.style.width = step >= 3 ? '100%' : '0%';
+        $('#stepFill1').style.width = step >= 2 ? '100%' : '0%';
+        $('#stepFill2').style.width = step >= 3 ? '100%' : '0%';
     }
 
-    // ============================================================
-    //  FORMAT NOMOR WA
-    // ============================================================
-    function formatWaDisplay(num) {
-        const clean = num.replace(/\D/g, '');
-        if (clean.startsWith('62') && clean.length >= 10) {
-            return `+${clean.slice(0,2)} ${clean.slice(2,5)}-${clean.slice(5,9)}-${clean.slice(9)}`;
-        }
-        return num;
+    function formatWaDisplay(n) {
+        const c = n.replace(/\D/g,'');
+        if (c.startsWith('62') && c.length >= 10) return `+${c.slice(0,2)} ${c.slice(2,5)}-${c.slice(5,9)}-${c.slice(9)}`;
+        return n;
     }
 
-    function sanitizeWa(num) {
-        return num.replace(/\D/g, '');
-    }
+    function generateOtp() { return Math.floor(100000+Math.random()*900000).toString(); }
 
-    // ============================================================
-    //  GENERATE OTP
-    // ============================================================
-    function generateOtp() {
-        return Math.floor(100000 + Math.random() * 900000).toString();
-    }
-
-    // ============================================================
-    //  KIRIM OTP VIA WA API
-    // ============================================================
-    async function sendOtpToWa(waNumber, otp) {
-        // Format pesan OTP
-        const message = `*Portal Akses - Kode OTP*\n\nKode verifikasi Anda: *${otp}*\n\nKode ini berlaku selama ${CONFIG.otpExpiry} detik. Jangan bagikan kode ini kepada siapa pun.`;
-
+    async function sendOtpToWa(wa, otp) {
+        const msg = `*Portal Akses OLT - Kode OTP*\n\nKode verifikasi Anda: *${otp}*\n\nBerlaku ${CONFIG.otpExpiry} detik. Jangan bagikan kode ini.`;
         try {
-            const response = await fetch(CONFIG.waApiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': CONFIG.waApiToken,
-                },
-                body: JSON.stringify({
-                    target: waNumber,
-                    message: message,
-                    // Format Fonnte — sesuaikan jika API WA-mu berbeda
-                    country_code: '62',
-                }),
+            const r = await fetch(CONFIG.waApiUrl, {
+                method: 'POST', headers: { 'Content-Type':'application/json', 'Authorization': CONFIG.waApiToken },
+                body: JSON.stringify({ target: wa, message: msg, country_code: '62' })
             });
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return { success: true, data: await r.json() };
+        } catch(e) { return { success: false, error: e.message }; }
+    }
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            const data = await response.json();
-            return { success: true, data };
-        } catch (err) {
-            console.error('Gagal mengirim OTP via WA:', err);
-            return { success: false, error: err.message };
-        }
+    function getUserData(email) {
+        return USER_DB[email.toLowerCase().trim()] || null;
     }
 
     // ============================================================
-    //  CEK EMAIL TERDAFTAR
+    //  STEP 1 SUBMIT
     // ============================================================
-    function isEmailRegistered(email) {
-        // Di production, ganti ini dengan panggilan API
-        // Contoh: const res = await fetch('/api/check-email', { method: 'POST', body: JSON.stringify({ email }) });
-        return CONFIG.registeredEmails.includes(email.toLowerCase().trim());
-    }
+    $('#btnSubmit').addEventListener('click', async () => {
+        const email = $('#emailInput').value.trim().toLowerCase();
+        const wa = $('#waInput').value.replace(/\D/g,'');
 
-    // ============================================================
-    //  STEP 1: SUBMIT EMAIL & WA
-    // ============================================================
-    btnSubmit.addEventListener('click', async () => {
-        const email = emailInput.value.trim().toLowerCase();
-        const wa = sanitizeWa(waInput.value);
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Masukkan email yang valid','error'); $('#emailInput').focus(); return; }
+        if (!wa || wa.length < 10 || !wa.startsWith('62')) { showToast('Nomor WhatsApp tidak valid (628xxx)','error'); $('#waInput').focus(); return; }
 
-        // Validasi email
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            showToast('Masukkan alamat email yang valid', 'error');
-            emailInput.focus();
-            return;
-        }
-
-        // Validasi nomor WA
-        if (!wa || wa.length < 10 || !wa.startsWith('62')) {
-            showToast('Masukkan nomor WhatsApp valid (format: 628xxx)', 'error');
-            waInput.focus();
-            return;
-        }
-
-        // Loading state
-        btnSubmit.classList.add('loading');
-        btnSubmit.disabled = true;
-
-        // Simulasi delay pengecekan (di production, ini adalah API call)
+        const btn = $('#btnSubmit');
+        btn.classList.add('loading'); btn.disabled = true;
         await new Promise(r => setTimeout(r, 800));
 
-        const registered = isEmailRegistered(email);
+        const user = getUserData(email);
+        if (!user) { btn.classList.remove('loading'); btn.disabled = false; showToast('Email tidak terdaftar dalam sistem','error'); return; }
 
-        if (!registered) {
-            btnSubmit.classList.remove('loading');
-            btnSubmit.disabled = false;
-            showToast('Email tidak terdaftar dalam sistem', 'error');
-            return;
-        }
-
-        // Generate OTP
         generatedOtp = generateOtp();
         currentUser = { email, wa };
 
-        // Kirim OTP via WA API
         const result = await sendOtpToWa(wa, generatedOtp);
-
-        btnSubmit.classList.remove('loading');
-        btnSubmit.disabled = false;
+        btn.classList.remove('loading'); btn.disabled = false;
 
         if (!result.success) {
-            // Demo mode: tetap lanjutkan tapi kasih peringatan
-            // Di production, mungkin ingin menghentikan di sini
-            console.warn('WA API gagal, masuk mode demo');
-            showToast('Mode demo: OTP ditampilkan di console browser', 'info');
-            console.log(`%c[DEMO OTP] Kode: ${generatedOtp}`, 'color: #00D4AA; font-size: 18px; font-weight: bold;');
+            console.log(`%c[DEMO OTP] ${generatedOtp}`, 'color:#00D4AA;font-size:18px;font-weight:bold;');
+            showToast('Mode demo: cek kode OTP di Console (F12)','info');
         } else {
-            showToast('Kode OTP berhasil dikirim ke WhatsApp', 'success');
+            showToast('Kode OTP dikirim ke WhatsApp','success');
         }
 
-        // Pindah ke step 2
-        otpSentTo.textContent = formatWaDisplay(wa);
+        $('#otpSentTo').textContent = formatWaDisplay(wa);
         goToStep(2);
         startCountdown();
-        otpBoxes[0].focus();
+        $$('#otpBoxes .otp-box')[0].focus();
     });
 
     // ============================================================
-    //  OTP INPUT BEHAVIOR
+    //  OTP INPUTS
     // ============================================================
-    otpBoxes.forEach((box, index) => {
-        box.addEventListener('input', (e) => {
-            const val = e.target.value.replace(/\D/g, '');
-            e.target.value = val.slice(0, 1);
-
-            if (val && index < otpBoxes.length - 1) {
-                otpBoxes[index + 1].focus();
-            }
-
-            // Update filled state
-            box.classList.toggle('filled', !!val);
-
-            // Cek apakah semua terisi
+    const otpBoxes = $$('#otpBoxes .otp-box');
+    otpBoxes.forEach((box, i) => {
+        box.addEventListener('input', e => {
+            const v = e.target.value.replace(/\D/g,''); e.target.value = v.slice(0,1);
+            if (v && i < otpBoxes.length - 1) otpBoxes[i+1].focus();
+            box.classList.toggle('filled', !!v);
             checkOtpComplete();
         });
-
-        box.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' && !box.value && index > 0) {
-                otpBoxes[index - 1].focus();
-                otpBoxes[index - 1].value = '';
-                otpBoxes[index - 1].classList.remove('filled');
-                checkOtpComplete();
-            }
+        box.addEventListener('keydown', e => {
+            if (e.key === 'Backspace' && !box.value && i > 0) { otpBoxes[i-1].focus(); otpBoxes[i-1].value=''; otpBoxes[i-1].classList.remove('filled'); checkOtpComplete(); }
         });
-
-        // Support paste
-        box.addEventListener('paste', (e) => {
+        box.addEventListener('paste', e => {
             e.preventDefault();
-            const paste = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
-            paste.split('').forEach((char, i) => {
-                if (otpBoxes[i]) {
-                    otpBoxes[i].value = char;
-                    otpBoxes[i].classList.add('filled');
-                }
-            });
-            const focusIdx = Math.min(paste.length, otpBoxes.length - 1);
-            otpBoxes[focusIdx].focus();
+            const p = (e.clipboardData.getData('text')||'').replace(/\D/g,'').slice(0,6);
+            p.split('').forEach((c,j) => { if(otpBoxes[j]){otpBoxes[j].value=c;otpBoxes[j].classList.add('filled');} });
+            otpBoxes[Math.min(p.length, otpBoxes.length-1)].focus();
             checkOtpComplete();
         });
     });
-
-    function checkOtpComplete() {
-        const code = getOtpValue();
-        btnVerify.disabled = code.length !== 6;
-    }
-
-    function getOtpValue() {
-        return Array.from(otpBoxes).map(b => b.value).join('');
-    }
+    function checkOtpComplete() { $('#btnVerify').disabled = getOtpValue().length !== 6; }
+    function getOtpValue() { return Array.from(otpBoxes).map(b=>b.value).join(''); }
 
     // ============================================================
-    //  COUNTDOWN RESEND
+    //  COUNTDOWN
     // ============================================================
     function startCountdown() {
-        let seconds = CONFIG.otpExpiry;
-        countdownEl.textContent = seconds;
-        resendText.classList.remove('hidden');
-        btnResend.classList.add('hidden');
-
+        let s = CONFIG.otpExpiry;
+        $('#countdown').textContent = s;
+        $('#resendText').classList.remove('hidden');
+        $('#btnResend').classList.add('hidden');
         clearInterval(countdownTimer);
         countdownTimer = setInterval(() => {
-            seconds--;
-            countdownEl.textContent = seconds;
-            if (seconds <= 0) {
-                clearInterval(countdownTimer);
-                resendText.classList.add('hidden');
-                btnResend.classList.remove('hidden');
-            }
+            s--; $('#countdown').textContent = s;
+            if (s <= 0) { clearInterval(countdownTimer); $('#resendText').classList.add('hidden'); $('#btnResend').classList.remove('hidden'); }
         }, 1000);
     }
 
-    // ============================================================
-    //  RESEND OTP
-    // ============================================================
-    btnResend.addEventListener('click', async () => {
+    $('#btnResend').addEventListener('click', async () => {
         generatedOtp = generateOtp();
-        btnResend.disabled = true;
-        btnResend.textContent = 'Mengirim...';
-
-        const result = await sendOtpToWa(currentUser.wa, generatedOtp);
-
-        if (!result.success) {
-            console.log(`%c[DEMO OTP] Kode baru: ${generatedOtp}`, 'color: #00D4AA; font-size: 18px; font-weight: bold;');
-            showToast('Mode demo: OTP baru di console browser', 'info');
-        } else {
-            showToast('Kode OTP baru telah dikirim', 'success');
-        }
-
-        btnResend.disabled = false;
-        btnResend.innerHTML = '<i class="fa-solid fa-rotate-right text-xs mr-1"></i> Kirim Ulang Kode';
-
-        // Reset OTP boxes
-        otpBoxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
-        btnVerify.disabled = true;
+        $('#btnResend').disabled = true; $('#btnResend').textContent = 'Mengirim...';
+        const r = await sendOtpToWa(currentUser.wa, generatedOtp);
+        if (!r.success) { console.log(`%c[DEMO OTP] ${generatedOtp}`,'color:#00D4AA;font-size:18px;font-weight:bold;'); showToast('Mode demo: cek Console','info'); }
+        else showToast('Kode OTP baru dikirim','success');
+        $('#btnResend').disabled = false;
+        $('#btnResend').innerHTML = '<i class="fa-solid fa-rotate-right text-xs mr-1"></i> Kirim Ulang Kode';
+        otpBoxes.forEach(b=>{b.value='';b.classList.remove('filled');});
+        $('#btnVerify').disabled = true;
         otpBoxes[0].focus();
         startCountdown();
     });
 
     // ============================================================
-    //  STEP 2: VERIFY OTP
+    //  VERIFY OTP
     // ============================================================
-    btnVerify.addEventListener('click', async () => {
+    $('#btnVerify').addEventListener('click', async () => {
         const code = getOtpValue();
+        if (code.length !== 6) { showToast('Masukkan 6 digit OTP','error'); return; }
 
-        if (code.length !== 6) {
-            showToast('Masukkan 6 digit kode OTP', 'error');
-            return;
-        }
+        const btn = $('#btnVerify');
+        btn.classList.add('loading'); btn.disabled = true;
 
-        btnVerify.classList.add('loading');
-        btnVerify.disabled = true;
-
-        // Verifikasi OTP
-        let isVerified = false;
-
+        let ok = false;
         if (CONFIG.verifyOtpUrl) {
-            // Production: kirim ke backend
-            try {
-                const res = await fetch(CONFIG.verifyOtpUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: currentUser.email,
-                        otp: code,
-                    }),
-                });
-                const data = await res.json();
-                isVerified = data.valid === true;
-            } catch (err) {
-                console.error('Gagal verifikasi OTP di server:', err);
-            }
+            try { const r = await fetch(CONFIG.verifyOtpUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:currentUser.email,otp:code})}); ok = (await r.json()).valid; } catch(e) {}
         } else {
-            // Demo: cek langsung di frontend
-            await new Promise(r => setTimeout(r, 600));
-            isVerified = code === generatedOtp;
+            await new Promise(r=>setTimeout(r,600));
+            ok = code === generatedOtp;
         }
 
-        btnVerify.classList.remove('loading');
-
-        if (!isVerified) {
-            btnVerify.disabled = false;
-            showToast('Kode OTP salah, silakan coba lagi', 'error');
-            // Shake animation pada OTP boxes
-            const container = $('#otpBoxes');
-            container.style.animation = 'none';
-            container.offsetHeight; // reflow
-            container.style.animation = 'shake 0.4s ease';
+        btn.classList.remove('loading');
+        if (!ok) {
+            btn.disabled = false; showToast('Kode OTP salah','error');
+            const c = $('#otpBoxes'); c.style.animation='none'; c.offsetHeight; c.style.animation='shake 0.4s ease';
             return;
         }
 
-        // OTP benar — lanjut ke step 3
         clearInterval(countdownTimer);
         goToStep(3);
-        showToast('Verifikasi berhasil!', 'success');
-
-        // Simpan session
-        sessionStorage.setItem('portalSession', JSON.stringify({
-            email: currentUser.email,
-            wa: currentUser.wa,
-            loginTime: new Date().toISOString(),
-        }));
-
-        // Redirect ke dashboard setelah 1.5 detik
+        showToast('Verifikasi berhasil!','success');
+        sessionStorage.setItem('portalSession', JSON.stringify({ email: currentUser.email, wa: currentUser.wa, time: new Date().toISOString() }));
         setTimeout(showDashboard, 1500);
     });
 
-    // Shake animation (injected)
-    const shakeStyle = document.createElement('style');
-    shakeStyle.textContent = `
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-8px); }
-            40% { transform: translateX(8px); }
-            60% { transform: translateX(-6px); }
-            80% { transform: translateX(6px); }
-        }
-    `;
-    document.head.appendChild(shakeStyle);
-
-    // ============================================================
-    //  BACK BUTTON
-    // ============================================================
-    btnBack.addEventListener('click', () => {
+    $('#btnBack').addEventListener('click', () => {
         clearInterval(countdownTimer);
-        otpBoxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
-        btnVerify.disabled = true;
+        otpBoxes.forEach(b=>{b.value='';b.classList.remove('filled');});
+        $('#btnVerify').disabled = true;
         goToStep(1);
     });
 
     // ============================================================
-    //  SHOW DASHBOARD
+    //  DASHBOARD
     // ============================================================
     function showDashboard() {
-        loginSection.classList.add('hidden');
-        dashboardSection.classList.remove('hidden');
-        dashboardSection.classList.add('fade-in');
+        $('#loginSection').classList.add('hidden');
+        const ds = $('#dashboardSection');
+        ds.classList.remove('hidden');
+        ds.classList.add('fade-in');
 
-        const session = JSON.parse(sessionStorage.getItem('portalSession') || '{}');
+        const session = JSON.parse(sessionStorage.getItem('portalSession')||'{}');
         const email = session.email || currentUser.email;
         const wa = session.wa || currentUser.wa;
-        const loginTime = session.loginTime ? new Date(session.loginTime) : new Date();
+        const user = getUserData(email);
+        if (!user) return;
 
-        // Isi data dashboard
+        const loginTime = session.time ? new Date(session.time) : new Date();
+
+        // Header
         $('#dashEmail').textContent = email;
         $('#dashWa').textContent = formatWaDisplay(wa);
-        $('#sessionEmail').textContent = email;
-        $('#sessionWa').textContent = formatWaDisplay(wa);
-        $('#sessionTime').textContent = loginTime.toLocaleString('id-ID', {
-            day: 'numeric', month: 'long', year: 'numeric',
-            hour: '2-digit', minute: '2-digit',
-        });
+        const hour = loginTime.getHours();
+        const greet = hour < 12 ? 'Selamat pagi' : hour < 17 ? 'Selamat siang' : 'Selamat malam';
+        $('#dashGreeting').textContent = `${greet}, ${user.name}`;
+        $('#dashName').textContent = user.name;
+        $('#dashRole').textContent = user.role;
 
-        // Isi aktivitas dummy
-        renderActivities();
+        // Chips
+        const chipsEl = $('#dashChips');
+        chipsEl.innerHTML = `
+            <span class="info-chip"><i class="fa-solid fa-server text-accent text-[10px]"></i> ${user.olts.length} OLT</span>
+            <span class="info-chip"><i class="fa-solid fa-clock text-[10px]"></i> ${loginTime.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</span>
+        `;
+
+        // Note
+        const noteEl = $('#dashNote');
+        if (user.note) {
+            noteEl.style.display = 'flex';
+            $('#dashNoteText').textContent = user.note;
+        } else {
+            noteEl.style.display = 'none';
+        }
+
+        // Render OLT cards
+        renderOltCards(user.olts);
     }
 
-    function renderActivities() {
-        const activities = [
-            { icon: 'fa-right-to-bracket', color: 'text-accent', bg: 'bg-accent/10', text: 'Login berhasil via OTP WhatsApp', time: 'Baru saja' },
-            { icon: 'fa-shield-halved', color: 'text-cyan-400', bg: 'bg-cyan-400/10', text: 'Verifikasi OTP berhasil', time: '1 menit lalu' },
-            { icon: 'fa-message', color: 'text-green-400', bg: 'bg-green-400/10', text: 'Kode OTP dikirim ke WhatsApp', time: '2 menit lalu' },
-            { icon: 'fa-magnifying-glass', color: 'text-amber-400', bg: 'bg-amber-400/10', text: 'Email ditemukan dalam database', time: '2 menit lalu' },
-            { icon: 'fa-envelope', color: 'text-purple-400', bg: 'bg-purple-400/10', text: 'Formulir identitas dikirim', time: '3 menit lalu' },
-        ];
+    function getOltUrl(olt) {
+        const base = olt.protocol === 'https' ? 'https' : 'http';
+        return `${base}://${olt.ip}${olt.port && olt.port !== 80 && olt.port !== 443 ? ':' + olt.port : ''}`;
+    }
 
-        const list = $('#activityList');
-        list.innerHTML = activities.map(a => `
-            <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-surface/50 transition-colors">
-                <div class="w-9 h-9 rounded-lg ${a.bg} flex items-center justify-center flex-shrink-0">
-                    <i class="fa-solid ${a.icon} ${a.color} text-sm"></i>
+    function renderOltCards(olts) {
+        const grid = $('#oltGrid');
+        grid.innerHTML = olts.map((olt, idx) => {
+            const url = getOltUrl(olt);
+            const statusLabel = olt.status === 'online' ? 'Online' : 'Offline';
+            const statusColor = olt.status === 'online' ? 'text-green-400' : 'text-rose-400';
+            const statusBg = olt.status === 'online' ? 'bg-green-400/10' : 'bg-rose-400/10';
+            const fullUrl = url;
+
+            return `
+            <div class="olt-card fade-in" style="animation-delay:${idx*100}ms">
+                <div class="p-6">
+                    <!-- Header -->
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-xl bg-accent/10 border border-accent/15 flex items-center justify-center">
+                                <i class="fa-solid fa-network-wired text-accent"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-heading font-semibold text-white text-[15px] leading-tight">${olt.name}</h4>
+                                <p class="text-xs text-muted mt-0.5">${olt.type}</p>
+                            </div>
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-medium ${statusBg} ${statusColor} px-2.5 py-1 rounded-full">
+                            <span class="olt-status-dot ${olt.status}"></span>
+                            ${statusLabel}
+                        </span>
+                    </div>
+
+                    <!-- Info rows -->
+                    <div class="space-y-2.5 mb-5">
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <i class="fa-solid fa-globe text-muted text-xs w-4 text-center"></i>
+                            <span class="text-slate-300 font-mono text-[13px]">${olt.ip}${olt.port && olt.port !== 80 && olt.port !== 443 ? ':' + olt.port : ''}</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <i class="fa-solid fa-location-dot text-muted text-xs w-4 text-center"></i>
+                            <span class="text-slate-400 text-[13px]">${olt.location}</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-sm">
+                            <i class="fa-solid fa-lock text-muted text-xs w-4 text-center"></i>
+                            <span class="text-slate-400 text-[13px]">User: <span class="text-slate-300 font-mono">${olt.credentials.username}</span> / Pass: <span class="text-slate-300 font-mono">${olt.credentials.password}</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex flex-wrap gap-2.5">
+                        <button class="btn-olt-access" onclick="openOlt('${fullUrl}')" ${olt.status==='offline'?'disabled style="opacity:0.4;cursor:not-allowed;"':''}>
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            Akses OLT
+                        </button>
+                        <button class="btn-olt-copy" onclick="copyToClipboard('${fullUrl}', this)">
+                            <i class="fa-regular fa-copy"></i>
+                            Salin URL
+                        </button>
+                        <button class="btn-olt-copy" onclick="copyToClipboard('${olt.credentials.username}:${olt.credentials.password}', this)">
+                            <i class="fa-solid fa-key"></i>
+                            Salin Login
+                        </button>
+                    </div>
                 </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm text-slate-200 truncate">${a.text}</p>
-                </div>
-                <span class="text-xs text-muted flex-shrink-0">${a.time}</span>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
+    }
+
+    // ============================================================
+    //  BUKA OLT (Tab baru / Iframe)
+    // ============================================================
+    function openOlt(url) {
+        // Buka di tab baru (rekomendasi untuk OLT yang pakai HTTP basic auth)
+        window.open(url, '_blank', 'noopener');
+        showToast('Membuka OLT di tab baru', 'success');
+    }
+
+    // Jika ingin mode iframe, Uncomment fungsi di bawah dan ganti openOlt:
+    /*
+    function openOlt(url) {
+        const overlay = $('#iframeOverlay');
+        const iframe = $('#iframeEl');
+        const urlBar = $('#iframeUrl');
+        urlBar.textContent = url;
+        iframe.src = url;
+        overlay.classList.add('active');
+    }
+    $('#iframeClose').addEventListener('click', () => {
+        const overlay = $('#iframeOverlay');
+        const iframe = $('#iframeEl');
+        iframe.src = 'about:blank';
+        overlay.classList.remove('active');
+    });
+    */
+
+    // ============================================================
+    //  COPY TO CLIPBOARD
+    // ============================================================
+    function copyToClipboard(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Tersalin';
+            btn.style.borderColor = 'rgba(0,212,170,0.4)';
+            btn.style.color = '#00D4AA';
+            setTimeout(() => { btn.innerHTML = original; btn.style.borderColor = ''; btn.style.color = ''; }, 2000);
+            showToast('Berhasil disalin ke clipboard', 'success');
+        }).catch(() => {
+            showToast('Gagal menyalin', 'error');
+        });
     }
 
     // ============================================================
     //  LOGOUT
     // ============================================================
-    btnLogout.addEventListener('click', () => {
+    $('#btnLogout').addEventListener('click', () => {
         sessionStorage.removeItem('portalSession');
-        dashboardSection.classList.add('hidden');
-        loginSection.classList.remove('hidden');
-        loginSection.classList.add('fade-in');
-
-        // Reset semua
-        emailInput.value = '';
-        waInput.value = '';
-        otpBoxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
-        btnVerify.disabled = true;
+        $('#dashboardSection').classList.add('hidden');
+        const ls = $('#loginSection');
+        ls.classList.remove('hidden'); ls.classList.add('fade-in');
+        $('#emailInput').value = ''; $('#waInput').value = '';
+        otpBoxes.forEach(b=>{b.value='';b.classList.remove('filled');});
+        $('#btnVerify').disabled = true;
         clearInterval(countdownTimer);
-        currentUser = { email: '', wa: '' };
-        generatedOtp = '';
+        currentUser = {email:'',wa:''}; generatedOtp = '';
         goToStep(1);
-
-        showToast('Anda telah keluar dari sistem', 'info');
+        showToast('Anda telah keluar','info');
     });
 
     // ============================================================
     //  CEK SESSION SAAT LOAD
     // ============================================================
-    (function checkExistingSession() {
-        const session = sessionStorage.getItem('portalSession');
-        if (session) {
+    (function() {
+        const s = sessionStorage.getItem('portalSession');
+        if (s) {
             try {
-                const data = JSON.parse(session);
-                // Session valid jika kurang dari 24 jam
-                const age = Date.now() - new Date(data.loginTime).getTime();
-                if (age < 24 * 60 * 60 * 1000) {
-                    currentUser = { email: data.email, wa: data.wa };
-                    showDashboard();
-                    return;
+                const d = JSON.parse(s);
+                if (Date.now() - new Date(d.time).getTime() < 86400000) {
+                    currentUser = { email: d.email, wa: d.wa };
+                    showDashboard(); return;
                 }
-            } catch (e) { /* ignore */ }
+            } catch(e) {}
         }
         goToStep(1);
     })();
 
-    // ============================================================
-    //  ENTER KEY SUPPORT
-    // ============================================================
-    emailInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') waInput.focus();
-    });
-    waInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') btnSubmit.click();
-    });
+    // Enter key support
+    $('#emailInput').addEventListener('keydown', e => { if(e.key==='Enter') $('#waInput').focus(); });
+    $('#waInput').addEventListener('keydown', e => { if(e.key==='Enter') $('#btnSubmit').click(); });
     </script>
 </body>
 </html>
